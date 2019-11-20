@@ -166,7 +166,7 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
 
     # Log to tensorboard for now
     if current_rank() == 0:
-        logdir = f"tensorboard_logs/{model_name}/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+        logdir = "tensorboard_logs/{}/scalars/".format(model_name) + datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)  
         callbacks.append(tensorboard_callback)
 

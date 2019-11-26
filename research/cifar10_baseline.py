@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """KungFu experiment_0
 
 KungFu requires users to make the following changes:
@@ -11,7 +9,7 @@ The distributed optimizer defines how local gradients and model weights are sync
 
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function   
+from __future__ import print_function
 
 import numpy as npc
 import os
@@ -23,7 +21,10 @@ import tensorflow as tf
 
 # tf.keras imports
 from tensorflow.keras import Model
-# from model_definition import Conv4_model
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, Activation, Flatten, Dropout
+from tensorflow.keras.layers import BatchNormalization, AveragePooling2D, Input, MaxPooling2D
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # kungfu imports
 import kungfu as kf
@@ -35,51 +36,9 @@ from kungfu.tensorflow.optimizers import (PairAveragingOptimizer,
                                           SynchronousSGDOptimizer)
 from kungfu.tensorflow.initializer import BroadcastGlobalVariablesCallback
 
-# import for showing the confusion matrix
-# import itertools
-# from sklearn.metrics import confusion_matrix
-# import matplotlib.pyplot as plt
+# local imports
+from model_definition import Conv4_model
 
-# ----------------------------------------
-
-
-# tensorflow imports
-import tensorflow as tf
-
-# tf.keras imports
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Activation, Flatten, Dropout
-from tensorflow.keras.layers import BatchNormalization, AveragePooling2D, Input, MaxPooling2D
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-def Conv4_model(x_train, num_classes):
-
-    model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same',
-                    input_shape=x_train.shape[1:], name="conv_1")) 
-    model.add(Activation('relu'))
-    model.add(Conv2D(32, (3, 3), name="conv_2"))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
-    model.add(Conv2D(64, (3, 3), padding='same', name="conv_3"))
-    model.add(Activation('relu'))
-    model.add(Conv2D(64, (3, 3), name="conv_4"))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
-    model.add(Flatten())
-    model.add(Dense(512))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(num_classes))
-    model.add(Activation('softmax'))
-  
-    return model
-
-# ----------------------------------------
 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 class_names = ["airplane", "automobile", "bird", "cat",
@@ -87,15 +46,10 @@ class_names = ["airplane", "automobile", "bird", "cat",
 
 # Model and dataset params
 save_dir = os.path.join(os.getcwd(), 'saved_models')
-num_classes = 10  # number of different classes in dataset
-learning_rate = 0.01  # fixed learning rate
-batch_size = 64  # training batch size
-epochs = 80  # number of epochs to train
-
-# print('x_train shape:', x_train.shape)
-# print(x_train.shape[0], 'train samples')
-# print(y_train.shape[0], 'train_labels')
-# print(x_test.shape[0], 'test samples')
+num_classes = 10
+learning_rate = 0.01
+batch_size = 32
+epochs = 1
 
 
 def build_optimizer(name, n_shards=1):
@@ -166,8 +120,9 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
 
     # Log to tensorboard for now
     if current_rank() == 0:
-        logdir = "tensorboard_logs/{}/scalars/".format(model_name) + datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)  
+        logdir = "tensorboard_logs/{}/scalars/".format(
+            model_name) + datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
         callbacks.append(tensorboard_callback)
 
     model.fit(x_node, y_node,

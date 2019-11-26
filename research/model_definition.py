@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
+import numpy as np 
 import os
 import logging
 
@@ -42,3 +42,6 @@ def Conv4_model(x_train, num_classes):
     model.add(Activation('softmax'))
   
     return model
+    
+def test(): 
+    pass 

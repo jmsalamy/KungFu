@@ -47,3 +47,4 @@ tensorflow-prefix
 tensorflow-repo-prefix
 Testing/
 venv
+tensorboard_logs/

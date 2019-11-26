@@ -2,37 +2,17 @@ import numpy as np
 import tensorflow as tf
 
 
-def modify_image(f, image):
-    """ Apply the function 'f' on 'image' and return the resulting image
 
+def process(f_data, x_train, y_train):
+    """ apply a user defined 'f_data' transormation on dataset
+    
     Args:
-        f (function): function to be applied on image
-        image (np.ndarray): image to be modified
-
+        f_data (function): transformation function to apply on dataset
+        x_train (numpy.ndarray): images
+        y_train (numpy.ndarray): labels
+    
     Returns:
-        np.ndarray: modified image
-    """
-
-    modified_image = f(image)
-    assert type(modified_image) == np.ndarray
-
-    return modified_image
-
-
-def modify_dataset(f, data, labels):
-    """modify dataset by applying 'f' on data and labels
-
-    Args:
-        f (function): function to be applied on the data batch
-        data (numpy.ndarray): array of data batch 
-        labels (numpy.ndarray): array of corresponding labels
-
-    Returns:
-        numpy.ndarray: modified data and labels array
-    """
-
-    new_idx = f(data)
-    modified_data = data[new_idx]
-    modified_labels = labels[new_idx]
-
-    return modified_data, modified_labels
+        [numpy.ndarray]: transformed images and labels
+    """   
+    x_train, y_train = f_data(x_train, y_train)
+    return x_train, y_train

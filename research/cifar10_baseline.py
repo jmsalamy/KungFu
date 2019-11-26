@@ -38,11 +38,8 @@ from kungfu.tensorflow.initializer import BroadcastGlobalVariablesCallback
 
 # local imports
 from model_definition import Conv4_model
+import preprocess_data
 
-
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
-class_names = ["airplane", "automobile", "bird", "cat",
-               "deer", "dog", "frog", "horse", "ship", "truck"]
 
 # Model and dataset params
 save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -79,13 +76,10 @@ def build_model(optimizer, x_train, num_classes):
 
 def train_model(model, model_name, x_train, x_test, y_train, y_test):
     # Pre-process dataset
-    x_train = x_train.astype('float32')
-    x_train /= 255
     x_test = x_test.astype('float32')
     x_test /= 255
 
     # Convert class vectors to binary class matrices.
-    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes)
 
     # Train model
@@ -144,11 +138,24 @@ def evaluate_trained_cifar10_model(model_name, x_test, y_test):
     return scores
 
 
+def f_data(x_train, y_train):
+    x_train = x_train.astype('float32')
+    x_train /= 255
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+    return x_train, y_train
+
+
 if __name__ == "__main__":
     logging.basicConfig(filename="tf2_Conv4_CIFAR10_exp_0.log",
                         level=logging.DEBUG,
                         format="%(asctime)s:%(levelname)s:%(message)s")
     print("n shards here: ", current_cluster_size())
+    # Load data
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+    class_names = ["airplane", "automobile", "bird", "cat",
+                   "deer", "dog", "frog", "horse", "ship", "truck"]
+    # Pre process data
+    x_train, y_train = preprocess_data.process(f_data, x_train, y_train)
 
     optimizer = build_optimizer('sync-sgd', n_shards=current_cluster_size())
     model = build_model(optimizer, x_train, num_classes)

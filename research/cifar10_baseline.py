@@ -7,39 +7,34 @@ The distributed optimizer defines how local gradients and model weights are sync
 3. (Optional) Scaling the learning rate of your local optimizer
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-import numpy as npc
-import os
 import logging
+import os
 from datetime import datetime
-
-# tensorflow imports
-import tensorflow as tf
-
-# tf.keras imports
-from tensorflow.keras import Model
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Activation, Flatten, Dropout
-from tensorflow.keras.layers import BatchNormalization, AveragePooling2D, Input, MaxPooling2D
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # kungfu imports
 import kungfu as kf
+import numpy as np
+# tensorflow imports
 import tensorflow as tf
 from kungfu import current_cluster_size, current_rank
+from kungfu.tensorflow.initializer import BroadcastGlobalVariablesCallback
 from kungfu.tensorflow.ops import broadcast
 from kungfu.tensorflow.optimizers import (PairAveragingOptimizer,
                                           SynchronousAveragingOptimizer,
                                           SynchronousSGDOptimizer)
-from kungfu.tensorflow.initializer import BroadcastGlobalVariablesCallback
+# tf.keras imports
+from tensorflow.keras import Model
+from tensorflow.keras.layers import (Activation, AveragePooling2D,
+                                     BatchNormalization, Conv2D, Dense,
+                                     Dropout, Flatten, Input, MaxPooling2D)
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
+import preprocess_data
 # local imports
 from model_definition import Conv4_model
-import preprocess_data
-
 
 # Model and dataset params
 save_dir = os.path.join(os.getcwd(), 'saved_models')

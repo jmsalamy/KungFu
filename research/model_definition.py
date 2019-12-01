@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np 
+import numpy as np
 import os
 import logging
 
@@ -16,11 +16,12 @@ from tensorflow.keras.layers import Dense, Conv2D, Activation, Flatten, Dropout
 from tensorflow.keras.layers import BatchNormalization, AveragePooling2D, Input, MaxPooling2D
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
+
 def Conv4_model(x_train, num_classes):
 
     model = Sequential()
     model.add(Conv2D(32, (3, 3), padding='same',
-                    input_shape=x_train.shape[1:], name="conv_1")) 
+                     input_shape=x_train.shape[1:], name="conv_1"))
     model.add(Activation('relu'))
     model.add(Conv2D(32, (3, 3), name="conv_2"))
     model.add(Activation('relu'))
@@ -40,8 +41,5 @@ def Conv4_model(x_train, num_classes):
     model.add(Dropout(0.5))
     model.add(Dense(num_classes))
     model.add(Activation('softmax'))
-  
+
     return model
-    
-def test(): 
-    pass 

@@ -78,22 +78,13 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
     y_test = tf.keras.utils.to_categorical(y_test, num_classes)
 
     # Train model
-    print("training set size:", x_train.shape, y_train.shape)
-
-    # calculate the offset for the data of the KungFu node
     n_shards = current_cluster_size()
     shard_id = current_rank()
-    train_data_size = len(x_train)
+    len_data = len(x_train)
 
-    shard_size = train_data_size // n_shards
-    data_batch_size = train_data_size // n_shards
-    offset = data_batch_size * shard_id
-
-    # extract the data for learning of the KungFu node
-    print("sharding info for current worker : ",
-          current_rank(), offset, offset + shard_size)
-    x_node = x_train[offset:offset + shard_size]
-    y_node = y_train[offset:offset + shard_size]
+    print("training set size:", x_train.shape, y_train.shape)
+    x_node, y_node = preprocess_data.data_shard(
+        x_train, y_train, n_shards, shard_id, len_data)
 
     callbacks = [BroadcastGlobalVariablesCallback()]
 
@@ -137,6 +128,7 @@ def f_data(x_train, y_train):
     x_train = x_train.astype('float32')
     x_train /= 255
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+
     return x_train, y_train
 
 

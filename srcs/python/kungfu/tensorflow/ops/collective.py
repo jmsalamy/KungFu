@@ -1,3 +1,4 @@
+import tensorflow as tf
 from kungfu._utils import map_maybe
 
 from ._tf_oplib import _op_lib
@@ -7,6 +8,10 @@ from .topology import peer_info
 def barrier():
     """Create a new barrier operator."""
     return _op_lib.kungfu_barrier()
+
+
+def consensus(t):
+    return _op_lib.kungfu_consensus(t, tensor_name=t.name, strong=True)
 
 
 def broadcast(t):
@@ -36,6 +41,11 @@ def _nccl_all_reduce(t):
     return _op_lib.kungfu_nccl_all_reduce(t, input_tensor_name=t.name)
 
 
+def _scheduled_nccl_all_reduce(t):
+    return _op_lib.kungfu_scheduled_nccl_all_reduce(t,
+                                                    input_tensor_name=t.name)
+
+
 def _start_nccl_scheduler(*args, **kwargs):
     if hasattr(_op_lib, 'kungfu_start_nccl_scheduler'):
         return _op_lib.kungfu_start_nccl_scheduler(*args, **kwargs)
@@ -46,11 +56,14 @@ def _start_nccl_scheduler(*args, **kwargs):
 def group_nccl_all_reduce(ts):
     """Create a list of all_reduce operators for given tensor list, using NCCL."""
     names = [t.name for t in ts if t is not None]
-    if len(names) > 1:
-        print("WARNING: Please fuse tensors before using NCCL.")
+    if len(names) == 1:
+        return map_maybe(_nccl_all_reduce, ts)  # exactly one of ts is not None
+    else:
+        print("WARNING: Please fuse %d tensors before using NCCL." %
+              len(names))
         names = list(sorted(names))  # FIXME: use topsort
-    import tensorflow as tf
-    with tf.control_dependencies([
-            _start_nccl_scheduler(names),
-    ]):
-        return map_maybe(_nccl_all_reduce, ts)
+        import tensorflow as tf
+        with tf.control_dependencies([
+                _start_nccl_scheduler(names),
+        ]):
+            return map_maybe(_scheduled_nccl_all_reduce, ts)

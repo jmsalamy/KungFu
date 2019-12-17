@@ -10,8 +10,8 @@ import (
 	"github.com/lsds/KungFu/srcs/go/log"
 	"github.com/lsds/KungFu/srcs/go/plan"
 	rch "github.com/lsds/KungFu/srcs/go/rchannel"
-	runner "github.com/lsds/KungFu/srcs/go/runner/local"
 	"github.com/lsds/KungFu/srcs/go/utils"
+	runner "github.com/lsds/KungFu/srcs/go/utils/runner/local"
 )
 
 type watcher struct {
@@ -66,7 +66,7 @@ func (w *watcher) update(s Stage) {
 }
 
 func (w *watcher) watchRun(globalCtx context.Context) {
-	hostRank, _ := w.parents.Lookup(w.parent)
+	hostRank, _ := w.parents.Rank(w.parent)
 	var globalStopped, inactive bool
 	for {
 		select {

@@ -33,7 +33,7 @@ def data_shard(x_train, y_train, n_shards, shard_id, len_data, custom_data_bindi
         custom_data_binding (dict, optional): custom mapping of data : worker. Defaults to {}.
         sharding_mode (str, optional): equal sharding vs custom. Defaults to "equal".
 
-    Returns:
+    Returns:    
         [numpy.ndarray]: training data and labels for the 'shard_id' worker
     """
 

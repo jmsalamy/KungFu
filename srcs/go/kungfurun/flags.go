@@ -71,7 +71,7 @@ func (f *FlagSet) Register(flag *flag.FlagSet) {
 	flag.BoolVar(&f.AllowNVLink, "allow-nvlink", false, "allow NCCL to discover NVLink")
 
 	f.Strategy = kb.DefaultStrategy
-	flag.Var(&f.Strategy, "strategy", fmt.Sprintf("all reduce strategy, options are: %s", strings.Join(kb.StrategyNames(), " | ")))
+	flag.Var(&f.Strategy, "strategy", fmt.Sprintf("all reduce strategy, options are as listed: %s", strings.Join(kb.StrategyNames(), " | ")))
 
 	flag.IntVar(&f.Port, "port", 38080, "port for rchannel")
 	flag.BoolVar(&f.Watch, "w", false, "watch config")

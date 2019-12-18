@@ -86,3 +86,9 @@ func Test_trees(t *testing.T) {
 		t.Errorf("tree not generated correctly")
 	}
 }
+
+func Test_PrimaryBackupTree(t *testing.T) {
+	if g := GenBinaryTreePrimaryBackup(2, 2); !isValidGraph(g) {
+		t.Errorf("primary backup binary tree not generated correctly")
+	}
+}

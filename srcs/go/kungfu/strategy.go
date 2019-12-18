@@ -1,6 +1,8 @@
 package kungfu
 
 import (
+	"fmt"
+
 	kb "github.com/lsds/KungFu/srcs/go/kungfubase"
 	"github.com/lsds/KungFu/srcs/go/plan"
 )
@@ -8,12 +10,13 @@ import (
 type partitionStrategy func(plan.PeerList) []strategy
 
 var partitionStrategies = map[kb.Strategy]partitionStrategy{
-	kb.Star:           createStarStrategies,
-	kb.Clique:         createCliqueStrategies,
-	kb.Ring:           createRingStrategies,
-	kb.Tree:           createTreeStrategies,
-	kb.BinaryTree:     createBinaryTreeStrategies,
-	kb.BinaryTreeStar: createBinaryTreeStarStrategies,
+	kb.Star:                    createStarStrategies,
+	kb.Clique:                  createCliqueStrategies,
+	kb.Ring:                    createRingStrategies,
+	kb.Tree:                    createTreeStrategies,
+	kb.BinaryTree:              createBinaryTreeStrategies,
+	kb.BinaryTreeStar:          createBinaryTreeStarStrategies,
+	kb.BinaryTreePrimaryBackup: createStaticPrimaryBackupStrategies,
 }
 
 func simpleSingleGraphStrategy(bcastGraph *plan.Graph) []strategy {
@@ -38,6 +41,17 @@ func createTreeStrategies(peers plan.PeerList) []strategy {
 func createBinaryTreeStrategies(peers plan.PeerList) []strategy {
 	bcastGraph := plan.GenBinaryTree(len(peers))
 	return simpleSingleGraphStrategy(bcastGraph)
+}
+
+func createStaticPrimaryBackupStrategies(peers plan.PeerList) []strategy {
+	if len(peers)%2 != 0 {
+		fmt.Printf("odd number of peers currently not supported")
+		return nil
+	}
+	numPrimaries := len(peers) / 2
+	numBackups := len(peers) / 2
+	bcastGraph := plan.GenBinaryTreePrimaryBackup(numPrimaries, numBackups)
+	return simpleSingleGraphStrategy((bcastGraph))
 }
 
 func createBinaryTreeStarStrategies(peers plan.PeerList) []strategy {

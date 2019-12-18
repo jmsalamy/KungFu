@@ -50,6 +50,30 @@ func GenBinaryTree(k int) *Graph {
 	return g
 }
 
+// create a dummy primary backup strategy
+func GenBinaryTreePrimaryBackup(numPrimaries, numBackups int) *Graph {
+	g := NewGraph(numPrimaries + numBackups)
+	for i := 0; i < numPrimaries; i++ {
+		if j := i*2 + 1; j < numPrimaries {
+			g.AddEdge(i, j)
+		}
+		if j := i*2 + 2; j < numPrimaries {
+			g.AddEdge(i, j)
+		}
+	}
+
+	for i := numPrimaries; i < numBackups+numPrimaries; i++ {
+		if j := i*2 + 1; j < numBackups+numPrimaries {
+			g.AddEdge(i, j)
+		}
+		if j := i*2 + 2; j < numBackups+numPrimaries {
+			g.AddEdge(i, j)
+
+		}
+	}
+	return g
+}
+
 func GenBinaryTreeStar(peers PeerList) *Graph {
 	g := NewGraph(len(peers))
 	masters, hostMaster := getLocalMasters(peers)

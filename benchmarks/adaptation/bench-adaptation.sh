@@ -23,5 +23,5 @@ kungfu_run() {
 
 TF_CPP_MIN_LOG_LEVEL=2
 
-kungfu_run 2 python3 adaptive_trainer.py
-kungfu_run 2 python3 adaptive_trainer.py --schedule '1:16,1:1,1:16,1:1'
+kungfu_run 2 python3 adaptive_trainer_tf2.py
+kungfu_run 2 python3 adaptive_trainer_tf2.py --schedule '1:16,1:1,1:16,1:1'

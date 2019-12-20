@@ -63,10 +63,10 @@ func GenBinaryTreePrimaryBackup(numPrimaries, numBackups int) *Graph {
 	}
 
 	for i := numPrimaries; i < numBackups+numPrimaries; i++ {
-		if j := i*2 + 1; j < numBackups+numPrimaries {
+		if j := i*2 + 1 - numPrimaries; j < numBackups+numPrimaries {
 			g.AddEdge(i, j)
 		}
-		if j := i*2 + 2; j < numBackups+numPrimaries {
+		if j := i*2 + 2 - numPrimaries; j < numBackups+numPrimaries {
 			g.AddEdge(i, j)
 
 		}

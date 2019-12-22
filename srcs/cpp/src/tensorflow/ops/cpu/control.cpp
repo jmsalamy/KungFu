@@ -5,9 +5,9 @@ namespace tensorflow
 REGISTER_KUNGFU_OP(ResizeCluster)
     .Input("checkpoint: string")
     .Input("new_cluster_size: int32")
-    // indicats if cluster is changed
+    // indicates if cluster is changed
     .Output("changed: bool")
-    // indicats if self is still in the new cluster
+    // indicates if self is still in the new cluster
     .Output("keep: bool")
     .SetShapeFn([](shape_inference::InferenceContext *c) {
         c->set_output(0, c->Scalar());
@@ -46,4 +46,39 @@ class ResizeCluster : public OpKernel
 };
 
 REGISTER_KUNGFU_KERNEL_BUILDER(ResizeCluster, DEVICE_CPU);
-}  // namespace tensorflow
+
+REGISTER_KUNGFU_OP(ReshapeStrategy)
+    // .Input("chkpt : null")
+    // indicates if strategy is changed
+    .Output("changed: bool")
+    .SetShapeFn([](shape_inference::InferenceContext *c) {
+        c->set_output(0, c->Scalar());
+        return Status::OK();
+    });
+
+class ReshapeStrategy : public OpKernel
+{
+    bool debug_;
+
+  public:
+    ReshapeStrategy(OpKernelConstruction *context) : OpKernel(context)
+    {
+        context->GetAttr("debug", &debug_);
+    }
+
+    void Compute(OpKernelContext *context) override
+    {
+    //     const std::string &chpt = context->input(0).scalar<std::string>()();
+    //     const int32_t new_size  = context->input(1).scalar<int32_t>()();
+        if (debug_) {
+            LOG(WARNING) << "ReshapeCluster::Compute called with random strategy";
+        }
+        Tensor *StrategyChanged = nullptr;
+        OP_REQUIRES_OK(
+            context, context->allocate_output(0, MakeTensorShape(), &StrategyChanged));
+        _kungfu_world->ReshapeStrategy(StrategyChanged->scalar<bool>().data());
+    }
+};
+
+REGISTER_KUNGFU_KERNEL_BUILDER(ReshapeStrategy, DEVICE_CPU);
+}

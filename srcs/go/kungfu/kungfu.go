@@ -107,10 +107,40 @@ func (kf *Kungfu) GetCheckpoint() string {
 	return kf.checkpoint
 }
 
+func (kf *Kungfu) SetCheckpoint(ckpt string) bool {
+	kf.Lock()
+	defer kf.Unlock()
+	kf.checkpoint = ckpt
+	return true
+}
+
 func (kf *Kungfu) Update() bool {
 	kf.Lock()
 	defer kf.Unlock()
 	return kf.updateTo(kf.currentPeers)
+}
+
+func (kf *Kungfu) UpdateStrategy() bool {
+	kf.Lock()
+	defer kf.Unlock()
+	return kf.UpdateStrategyTo()
+}
+
+func (kf *Kungfu) UpdateStrategyTo() bool {
+	if kf.updated {
+		log.Debugf("Strategy already updated. Ignore")
+		return true
+	}
+	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router)
+	if !exist {
+		return false
+	}
+	if err := sess.barrier(); err != nil {
+		utils.ExitErr(fmt.Errorf("barrier failed after newSession: %v", err))
+	}
+	kf.currentSession = sess
+	kf.updated = true
+	return true
 }
 
 func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
@@ -165,7 +195,7 @@ func (kf *Kungfu) consensus(bs []byte) bool {
 
 func (kf *Kungfu) propose(ckpt string, peers plan.PeerList) (bool, bool) {
 	if peers.Eq(kf.currentPeers) {
-		log.Debugf("ingore unchanged proposal")
+		log.Debugf("ignore unchanged proposal")
 		return false, true
 	}
 	if digest := peers.Bytes(); !kf.consensus(digest) {
@@ -191,6 +221,17 @@ func (kf *Kungfu) propose(ckpt string, peers plan.PeerList) (bool, bool) {
 	return true, keep
 }
 
+func (kf *Kungfu) proposeStrategy(newStrategy kb.Strategy) bool {
+	// if new strategy same as old, do nothing
+	func() {
+		kf.Lock()
+		defer kf.Unlock()
+		kf.strategy = newStrategy
+		kf.updated = false
+	}()
+	return true
+}
+
 func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 	log.Debugf("resize cluster to %d with checkpoint %q", newSize, ckpt)
 	peers, err := kf.hostList.GenPeerList(newSize, kf.portRange)
@@ -202,4 +243,18 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 		kf.Update()
 	}
 	return changed, keep, nil
+}
+
+// ReshapeStrategy Creates a new KungFu Session with the given strategy
+func (kf *Kungfu) ReshapeStrategy() (bool, error) {
+	log.Debugf("change strategy to the given strategy")
+
+	// generate a random strategy here
+	// newStrategy := helperMethod to generate a random primary/backup edge set
+	newStrategy := kf.strategy
+	strategyChanged := kf.proposeStrategy(newStrategy)
+	if strategyChanged {
+		kf.UpdateStrategy()
+	}
+	return strategyChanged, nil
 }

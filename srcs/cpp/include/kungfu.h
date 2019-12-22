@@ -129,6 +129,9 @@ class kungfu_world
     // control APIs
     int ResizeCluster(const char *ckpt, int new_size, bool *changed,
                       bool *keep);
+
+    int ReshapeStrategy(bool *StrategyChanged);
+
 };
 
 #endif

@@ -15,3 +15,13 @@ func GoKungfuResizeCluster(pCkpt *C.char, size int, pChanged, pKeep *C.char) int
 	*pKeep = boolToChar(keep)
 	return 0
 }
+
+//export GoKungfuReshapeStrategy
+func GoKungfuReshapeStrategy(pStrategyChanged *C.char) int {
+	StrategyChanged, err := kungfu.ReshapeStrategy()
+	if err != nil {
+		utils.ExitErr(err)
+	}
+	*pStrategyChanged = boolToChar(StrategyChanged)
+	return 0
+}

@@ -20,6 +20,11 @@ var (
 func main() {
 	flag.Parse()
 	kungfu, err := kf.New()
+
+	// fmt.Printf("here")
+	// fmt.Printf(kungfu.GetCheckpoint())
+	fmt.Print(kungfu.CurrentSession().ClusterSize())
+	// kungfu.SetCheckpoint("1")
 	if err != nil {
 		utils.ExitErr(err)
 	}
@@ -36,9 +41,9 @@ func fakeTrain(kungfu *kf.Kungfu) {
 	y.AsI32()[0] = 0
 
 	var step int
-	if err := restore(kungfu, &step); err != nil {
-		utils.ExitErr(err)
-	}
+	// if err := restore(kungfu, &step); err != nil {
+	// 	utils.ExitErr(err)
+	// }
 
 	for ; step < *maxStep; step++ {
 		train := func() {
@@ -58,7 +63,6 @@ func fakeTrain(kungfu *kf.Kungfu) {
 		if *runTrain {
 			train()
 		}
-
 		if nextStep := step + 1; nextStep < *maxStep && !resize(kungfu, nextStep) {
 			log.Infof("should stop")
 			break
@@ -69,6 +73,7 @@ func fakeTrain(kungfu *kf.Kungfu) {
 
 func restore(kungfu *kf.Kungfu, step *int) error {
 	ckpt := kungfu.GetCheckpoint()
+	fmt.Printf("comes here after")
 	n, err := strconv.Atoi(ckpt)
 	if err != nil {
 		return err

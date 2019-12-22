@@ -26,6 +26,7 @@ func main() {
 	flag.Parse()
 	log.Printf("[%s]", os.Args[0])
 	kungfu, err := kf.New()
+	fmt.Print(kungfu.CurrentSession().ClusterSize())
 	if err != nil {
 		utils.ExitErr(err)
 	}

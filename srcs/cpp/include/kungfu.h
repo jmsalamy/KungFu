@@ -130,7 +130,7 @@ class kungfu_world
     int ResizeCluster(const char *ckpt, int new_size, bool *changed,
                       bool *keep);
 
-    int ReshapeStrategy(bool *StrategyChanged);
+    int ReshapeStrategy(bool *changed);
 
 };
 

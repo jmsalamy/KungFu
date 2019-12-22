@@ -65,18 +65,18 @@ class ReshapeStrategy : public OpKernel
     {
         context->GetAttr("debug", &debug_);
     }
-
+    
     void Compute(OpKernelContext *context) override
     {
     //     const std::string &chpt = context->input(0).scalar<std::string>()();
     //     const int32_t new_size  = context->input(1).scalar<int32_t>()();
         if (debug_) {
-            LOG(WARNING) << "ReshapeCluster::Compute called with random strategy";
+            LOG(WARNING) << "ReshapeCluster:: compute called with strategy";
         }
-        Tensor *StrategyChanged = nullptr;
+        Tensor *changed = nullptr;
         OP_REQUIRES_OK(
-            context, context->allocate_output(0, MakeTensorShape(), &StrategyChanged));
-        _kungfu_world->ReshapeStrategy(StrategyChanged->scalar<bool>().data());
+            context, context->allocate_output(0, MakeTensorShape(), &changed));
+        _kungfu_world->ReshapeStrategy(changed->scalar<bool>().data());
     }
 };
 

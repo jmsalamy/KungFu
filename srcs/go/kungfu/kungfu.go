@@ -127,10 +127,10 @@ func (kf *Kungfu) UpdateStrategy() bool {
 }
 
 func (kf *Kungfu) UpdateStrategyTo() bool {
-	if kf.updated {
-		log.Debugf("Strategy already updated. Ignore")
-		return true
-	}
+	// if kf.updated {
+	// 	log.Debugf("Strategy already updated. Ignore")
+	// 	return true
+	// }
 	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router)
 	if !exist {
 		return false
@@ -245,13 +245,17 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 	return changed, keep, nil
 }
 
+func (kf *Kungfu) nextStrategy() kb.Strategy {
+	// generate a random strategy here for basic test
+	// next, modify this method to work with a specific monitored metric
+	s := kb.StrategyNamesArray[0]
+	return s
+}
+
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy() (bool, error) {
-	log.Debugf("change strategy to the given strategy")
-
-	// generate a random strategy here
-	// newStrategy := helperMethod to generate a random primary/backup edge set
-	newStrategy := kf.strategy
+	newStrategy := kf.nextStrategy()
+	log.Debugf("change strategy to : %s", newStrategy)
 	strategyChanged := kf.proposeStrategy(newStrategy)
 	if strategyChanged {
 		kf.UpdateStrategy()

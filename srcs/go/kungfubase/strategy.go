@@ -21,7 +21,7 @@ const (
 const DefaultStrategy = BinaryTreeStar
 
 var (
-	strategyNames = map[Strategy]string{
+	StrategyNamesMap = map[Strategy]string{
 		Star:                    `STAR`,
 		Ring:                    `RING`,
 		Clique:                  `CLIQUE`,
@@ -33,16 +33,18 @@ var (
 	}
 )
 
+var StrategyNamesArray = []Strategy{Star, Ring, Clique, Tree, BinaryTree, BinaryTreeStar}
+
 func StrategyNames() []string {
 	var names []string
-	for _, name := range strategyNames {
+	for _, name := range StrategyNamesMap {
 		names = append(names, name)
 	}
 	return names
 }
 
 func (s Strategy) String() string {
-	return strategyNames[s]
+	return StrategyNamesMap[s]
 }
 
 // Set implements flags.Value::Set
@@ -58,7 +60,7 @@ func (s *Strategy) Set(val string) error {
 var errInvalidStrategy = errors.New("invalid strategy")
 
 func ParseStrategy(s string) (*Strategy, error) {
-	for k, v := range strategyNames {
+	for k, v := range StrategyNamesMap {
 		if s == v {
 			return &k, nil
 		}

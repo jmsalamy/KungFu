@@ -33,7 +33,7 @@ def show_duration(duration):
 x = tf.Variable(tf.ones([], dtype=tf.int32))
 y = all_reduce(x)
 
-resize_op = reshape_strategy()
+reshape_op = reshape_strategy()
 init = tf.compat.v1.global_variables_initializer()
 
 # barrier_op = barrier()
@@ -48,7 +48,7 @@ with tf.compat.v1.Session() as sess:
               (i, v, show_duration(time.time() - t0)))
 
         t0 = time.time()
-        keep = sess.run(resize_op)
+        keep = sess.run(reshape_op)
         print('reshape took %s' %
                 (show_duration(time.time() - t0)))
         if not keep:

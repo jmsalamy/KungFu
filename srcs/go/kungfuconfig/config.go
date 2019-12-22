@@ -34,7 +34,7 @@ var ConfigEnvKeys = []string{
 
 var (
 	EnableMonitoring = false
-	ShowDebugLog     = false
+	ShowDebugLog     = true
 	EnableAdaptive   = false
 	MonitoringPeriod = 1 * time.Second
 )

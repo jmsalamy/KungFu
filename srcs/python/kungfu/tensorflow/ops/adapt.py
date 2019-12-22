@@ -14,7 +14,7 @@ def get_init_checkpoint():
     return os.getenv('KUNGFU_INIT_CKPT')
 
 
-def resize_cluster(checkpoint, new_size, debug=False):
+def resize_cluster(checkpoint, new_size, debug=True):
     """Resize cluster to given size.
 
     Inputs:
@@ -29,7 +29,7 @@ def resize_cluster(checkpoint, new_size, debug=False):
     return _op_lib.kungfu_resize_cluster(checkpoint, new_size, debug=debug)
 
 
-def reshape_strategy(debug=False):
+def reshape_strategy(debug=True):
     """Reshapes a cluster's allReduce Strategy 
 
     Inputs:

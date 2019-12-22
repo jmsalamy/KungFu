@@ -20,7 +20,7 @@ kungfu_run() {
         $@
 }
 
-# TF_CPP_MIN_LOG_LEVEL=0
+export TF_CPP_MIN_LOG_LEVEL=0
 
 # kungfu_run 2 python3 adaptive_trainer_tf2.py
 # kungfu_run -np 2 python3 adaptive_trainer_tf2.py --schedule '1:16,1:1,1:16,1:1'

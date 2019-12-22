@@ -19,5 +19,5 @@ kungfu_run() {
         -w \
         $@
 }
-
-kungfu_run 16 python3 adaptive_strategy.py
+export TF_CPP_MIN_LOG_LEVEL=0
+kungfu_run 4 python3 adaptive_strategy.py

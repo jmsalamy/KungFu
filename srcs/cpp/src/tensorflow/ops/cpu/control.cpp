@@ -51,6 +51,7 @@ REGISTER_KUNGFU_OP(ReshapeStrategy)
     // .Input("chkpt : null")
     // indicates if strategy is changed
     .Output("changed: bool")
+    .SetIsStateful()
     .SetShapeFn([](shape_inference::InferenceContext *c) {
         c->set_output(0, c->Scalar());
         return Status::OK();
@@ -65,7 +66,7 @@ class ReshapeStrategy : public OpKernel
     {
         context->GetAttr("debug", &debug_);
     }
-    
+
     void Compute(OpKernelContext *context) override
     {
     //     const std::string &chpt = context->input(0).scalar<std::string>()();

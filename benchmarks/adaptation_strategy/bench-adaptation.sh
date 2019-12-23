@@ -20,4 +20,4 @@ kungfu_run() {
         $@
 }
 export TF_CPP_MIN_LOG_LEVEL=0
-kungfu_run 16 python3 adaptive_strategy.py
+kungfu_run 2 python3 adaptive_strategy.py

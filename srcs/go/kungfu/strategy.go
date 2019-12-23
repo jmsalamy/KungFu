@@ -16,7 +16,7 @@ var partitionStrategies = map[kb.Strategy]partitionStrategy{
 	kb.Tree:                    createTreeStrategies,
 	kb.BinaryTree:              createBinaryTreeStrategies,
 	kb.BinaryTreeStar:          createBinaryTreeStarStrategies,
-	kb.BinaryTreePrimaryBackup: createStaticPrimaryBackupStrategies,
+	kb.BinaryTreePrimaryBackup: CreatePrimaryBackupStrategies,
 }
 
 func simpleSingleGraphStrategy(bcastGraph *plan.Graph) []strategy {
@@ -43,7 +43,7 @@ func createBinaryTreeStrategies(peers plan.PeerList) []strategy {
 	return simpleSingleGraphStrategy(bcastGraph)
 }
 
-func createStaticPrimaryBackupStrategies(peers plan.PeerList) []strategy {
+func CreatePrimaryBackupStrategies(peers plan.PeerList) []strategy {
 	if len(peers)%2 != 0 {
 		fmt.Printf("odd number of peers currently not supported")
 		return nil

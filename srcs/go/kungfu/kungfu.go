@@ -35,6 +35,7 @@ type Kungfu struct {
 	currentPeers   plan.PeerList
 	checkpoint     string
 	updated        bool
+	strategyIdx    int
 }
 
 func New() (*Kungfu, error) {
@@ -120,24 +121,24 @@ func (kf *Kungfu) Update() bool {
 	return kf.updateTo(kf.currentPeers)
 }
 
-func (kf *Kungfu) UpdateStrategy() bool {
+func (kf *Kungfu) UpdateStrategy(newStrategy []strategy) bool {
 	kf.Lock()
 	defer kf.Unlock()
-	return kf.UpdateStrategyTo()
+	return kf.UpdateStrategyTo(newStrategy)
 }
 
-func (kf *Kungfu) UpdateStrategyTo() bool {
-	// if kf.updated {
-	// 	log.Debugf("Strategy already updated. Ignore")
-	// 	return true
-	// }
+func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy) bool {
+	// TODO : add check to bypass method if unnecessary
 	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router)
+	log.Debugf("strategy before: ", sess.strategies)
+	sess.strategies = newStrategy
 	if !exist {
 		return false
 	}
 	if err := sess.barrier(); err != nil {
 		utils.ExitErr(fmt.Errorf("barrier failed after newSession: %v", err))
 	}
+	log.Debugf("strategy after: ", sess.strategies)
 	kf.currentSession = sess
 	kf.updated = true
 	return true
@@ -221,12 +222,12 @@ func (kf *Kungfu) propose(ckpt string, peers plan.PeerList) (bool, bool) {
 	return true, keep
 }
 
-func (kf *Kungfu) proposeStrategy(newStrategy kb.Strategy) bool {
-	// if new strategy same as old, do nothing
+func (kf *Kungfu) proposeStrategy(newStrategy []strategy) bool {
+	// TODO : if new strategy same as old, do nothing
 	func() {
 		kf.Lock()
 		defer kf.Unlock()
-		kf.strategy = newStrategy
+		// kf.strategy = newStrategy
 		kf.updated = false
 	}()
 	return true
@@ -245,20 +246,21 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 	return changed, keep, nil
 }
 
-func (kf *Kungfu) nextStrategy() kb.Strategy {
+func (kf *Kungfu) nextStrategy() []strategy {
 	// generate a random strategy here for basic test
 	// next, modify this method to work with a specific monitored metric
-	s := kb.StrategyNamesArray[0]
+	strategy := CreatePrimaryBackupStrategies(kf.currentPeers)
+	s := strategy
 	return s
 }
 
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy() (bool, error) {
 	newStrategy := kf.nextStrategy()
-	log.Debugf("change strategy to : %s", newStrategy)
+	log.Debugf("switching to strategy : ", newStrategy)
 	strategyChanged := kf.proposeStrategy(newStrategy)
 	if strategyChanged {
-		kf.UpdateStrategy()
+		kf.UpdateStrategy(newStrategy)
 	}
 	return strategyChanged, nil
 }

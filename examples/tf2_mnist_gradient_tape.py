@@ -13,8 +13,12 @@ parser.add_argument('--kf-optimizer',
                     help='available options: sync-sgd, async-sgd, sma')
 args = parser.parse_args()
 
-DATASET_SIZE = 60000
-NUM_EPOCHS = 5
+DATASET_SIZE = 10000
+TRAIN_VAL_SPLIT = 0.8
+NUM_EPOCHS = 10
+BATCH_SIZE = 100
+# adjust number of steps based on number of workers
+NUM_STEPS = (DATASET_SIZE // BATCH_SIZE) // current_cluster_size()
 
 
 def load_data():
@@ -26,11 +30,12 @@ def load_data():
     dataset = tf.data.Dataset.from_tensor_slices(
         (tf.cast(mnist_images[..., tf.newaxis] / 255.0,
                  tf.float32), tf.cast(mnist_labels, tf.int64)))
-                 
+
     # smaller dataset for quick testing
-    smaller_dataset = dataset.take(1000)
-    train_dataset = smaller_dataset.take(800).batch(128)
-    test_dataset = smaller_dataset.skip(800).batch(128)
+    smaller_dataset = dataset.take(DATASET_SIZE)
+    split = int(DATASET_SIZE*TRAIN_VAL_SPLIT)
+    train_dataset = smaller_dataset.take(split).batch(BATCH_SIZE)
+    test_dataset = smaller_dataset.skip(split).batch(BATCH_SIZE)
     return train_dataset, test_dataset
 
 
@@ -40,10 +45,10 @@ def build_model():
         tf.keras.layers.Conv2D(32, [3, 3], activation='relu'),
         tf.keras.layers.Conv2D(64, [3, 3], activation='relu'),
         tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-        tf.keras.layers.Dropout(0.25),
+        # tf.keras.layers.Dropout(0.25),
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dropout(0.5),
+        # tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(10, activation='softmax')
     ])
     return mnist_model
@@ -65,18 +70,6 @@ def build_optimizer():
         raise RuntimeError('Unknown KungFu optimizer')
 
     return opt
-
-
-# def test_model(model, opt, dataset):
-#     model.compile(optimizer=opt,
-#                   loss=tf.losses.SparseCategoricalCrossentropy(),
-#                   metrics=[tf.metrics.SparseCategoricalAccuracy()])
-#     test_metrics = model.evaluate(dataset, verbose=0)
-#     # print metrics
-#     loss_index = 0
-#     accuracy_index = 1
-#     print('test accuracy: %f' % test_metrics[accuracy_index])
-#     print('test loss : %f' % test_metrics[loss_index])
 
 
 @tf.function
@@ -106,19 +99,20 @@ if __name__ == "__main__":
     # Prepare the metrics.
     train_acc_metric = tf.metrics.SparseCategoricalAccuracy()
     val_acc_metric = tf.metrics.SparseCategoricalAccuracy()
+    best_val_acc = 0
 
     for epoch in range(NUM_EPOCHS):
         print('Start of epoch %d' % (epoch+1,))
-        # KungFu: adjust number of steps based on number of GPUs.
+
         for batch, (images, labels) in enumerate(
-                train_dataset.take(1000 // current_cluster_size())):
+                train_dataset.take(NUM_STEPS)):
             probs, loss_value = training_step(
                 mnist_model, opt, images, labels, batch == 0)
-
+            # print(f"batch number here is {batch}")
             # update training metric
             train_acc_metric(labels, probs)
 
-            # Log loss metric every 10th batch only on the 0th worker 
+            # Log loss metric every 10th batch only on the 0th worker
             if batch % 10 == 0 and current_rank() == 0:
                 print('Training step #%d\tLoss: %.6f' % (batch, loss_value))
 
@@ -135,5 +129,9 @@ if __name__ == "__main__":
             val_acc_metric(y_batch_val, val_logits)
 
         val_acc = val_acc_metric.result()
+        best_val_acc = max(val_acc, best_val_acc)
         val_acc_metric.reset_states()
-        print(f"VALIDATION ACCURACY, worker {current_rank()} | epoch  {epoch} | val_acc {float(val_acc)})")
+        print(
+            f"VALIDATION ACCURACY : worker {current_rank()} | epoch  {epoch+1} | val_acc {float(val_acc)})")
+    print(
+        f"BEST VAL ACC OVER TRAINING: worker {current_rank()}, | best_val_acc {best_val_acc}")

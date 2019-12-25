@@ -16,6 +16,7 @@ const (
 	BinaryTreeStar          Strategy = C.KungFu_BinaryTreeStar
 	Auto                    Strategy = C.KungFu_AUTO
 	BinaryTreePrimaryBackup Strategy = C.KungFu_BinaryTreePrimaryBackup
+	PrimaryBackupTesting  	Strategy = C.KungFu_PrimaryBackupTesting
 )
 
 const DefaultStrategy = BinaryTreeStar
@@ -30,6 +31,7 @@ var (
 		BinaryTreeStar:          `BINARY_TREE_STAR`,
 		Auto:                    `AUTO`,
 		BinaryTreePrimaryBackup: `BINARY_TREE_PRIMARY_BACKUP`,
+		PrimaryBackupTesting: `PRIMARY_BACKUP_TESTING`,
 	}
 )
 

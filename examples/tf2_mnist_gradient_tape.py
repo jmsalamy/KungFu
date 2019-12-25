@@ -1,7 +1,7 @@
 import argparse
-
 import tensorflow as tf
 from kungfu import current_cluster_size, current_rank
+from kungfu.tensorflow.ops import reshape_strategy
 from kungfu.tensorflow.optimizers import (PairAveragingOptimizer,
                                           SynchronousAveragingOptimizer,
                                           SynchronousSGDOptimizer)
@@ -14,6 +14,7 @@ parser.add_argument('--kf-optimizer',
 args = parser.parse_args()
 
 DATASET_SIZE = 60000
+NUM_EPOCHS = 5
 
 
 def load_data():
@@ -25,9 +26,7 @@ def load_data():
     dataset = tf.data.Dataset.from_tensor_slices(
         (tf.cast(mnist_images[..., tf.newaxis] / 255.0,
                  tf.float32), tf.cast(mnist_labels, tf.int64)))
-
-    dataset = dataset.repeat()
-
+                 
     # smaller dataset for quick testing
     smaller_dataset = dataset.take(1000)
     train_dataset = smaller_dataset.take(800).batch(128)
@@ -92,11 +91,9 @@ def training_step(mnist_model, opt, images, labels, first_batch):
 
     # KungFu: broadcast is done after the first gradient step to ensure optimizer initialization.
     if first_batch:
-        print("COMES HERE--------------")
         from kungfu.tensorflow.initializer import broadcast_variables
         broadcast_variables(mnist_model.variables)
         broadcast_variables(opt.variables())
-        
 
     return probs, loss_value
 
@@ -106,33 +103,37 @@ if __name__ == "__main__":
     opt = build_optimizer()
     mnist_model = build_model()
 
-     # Prepare the metrics.
+    # Prepare the metrics.
     train_acc_metric = tf.metrics.SparseCategoricalAccuracy()
     val_acc_metric = tf.metrics.SparseCategoricalAccuracy()
 
-    # KungFu: adjust number of steps based on number of GPUs.
-    for batch, (images, labels) in enumerate(
-            train_dataset.take(800 // current_cluster_size())):
-        probs, loss_value = training_step(
-            mnist_model, opt, images, labels, batch == 0)
+    for epoch in range(NUM_EPOCHS):
+        print('Start of epoch %d' % (epoch+1,))
+        # KungFu: adjust number of steps based on number of GPUs.
+        for batch, (images, labels) in enumerate(
+                train_dataset.take(1000 // current_cluster_size())):
+            probs, loss_value = training_step(
+                mnist_model, opt, images, labels, batch == 0)
 
-        train_acc_metric(labels, probs)
+            # update training metric
+            train_acc_metric(labels, probs)
 
-        if batch % 10 == 0:
-            print('Step #%d\tLoss: %.6f' % (batch, loss_value))
-            train_acc = train_acc_metric.result()
-            print('Training acc over epoch: %s' % (float(train_acc),))
-            # Reset training metrics at the end of each epoch
-            train_acc_metric.reset_states()
+            # Log loss metric every 10th batch only on the 0th worker 
+            if batch % 10 == 0 and current_rank() == 0:
+                print('Training step #%d\tLoss: %.6f' % (batch, loss_value))
 
-    # Run a validation loop at the end of each epoch.
-    for x_batch_val, y_batch_val in test_dataset:
-        val_logits = mnist_model(x_batch_val)
-        # Update val metrics
-        val_acc_metric(y_batch_val, val_logits)
+        # Display metric at the end of each epoch
+        train_acc = train_acc_metric.result()
+        print('Training acc over epoch: %s' % (float(train_acc),))
+        # Reset training metric
+        train_acc_metric.reset_states()
 
-    val_acc = val_acc_metric.result()
-    val_acc_metric.reset_states()
-    print('Validation acc: %s' % (float(val_acc),))
+        # Run a validation loop at the end of each epoch.
+        for x_batch_val, y_batch_val in test_dataset:
+            val_logits = mnist_model(x_batch_val)
+            # Update val metrics
+            val_acc_metric(y_batch_val, val_logits)
 
-   
+        val_acc = val_acc_metric.result()
+        val_acc_metric.reset_states()
+        print(f"VALIDATION ACCURACY, worker {current_rank()} | epoch  {epoch} | val_acc {float(val_acc)})")

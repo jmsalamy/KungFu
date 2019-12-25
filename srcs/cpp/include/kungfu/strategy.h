@@ -12,7 +12,8 @@ enum KungFu_Strategy {
     KungFu_Clique,
     KungFu_BinaryTreeStar,
     KungFu_AUTO,
-    KungFu_BinaryTreePrimaryBackup
+    KungFu_BinaryTreePrimaryBackup, 
+    KungFu_PrimaryBackupTesting
 };
 
 typedef enum KungFu_Strategy KungFu_Strategy;

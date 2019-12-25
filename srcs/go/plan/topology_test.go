@@ -79,7 +79,7 @@ func Test_trees(t *testing.T) {
 	if g := GenTree(peers); !isValidTreeWithRoot(g, 0) {
 		t.Errorf("tree not generated correctly")
 	}
-	if g := GenBinaryTree(len(peers)); !isValidTreeWithRoot(g, 0) {
+	if g := GenBinaryTree(0, len(peers)); !isValidTreeWithRoot(g, 0) {
 		t.Errorf("tree not generated correctly")
 	}
 	if g := GenBinaryTreeStar(peers); !isValidTreeWithRoot(g, 0) {

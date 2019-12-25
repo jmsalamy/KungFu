@@ -37,9 +37,9 @@ func GenDefaultReduceGraph(g *Graph) *Graph {
 	return g0
 }
 
-func GenBinaryTree(k int) *Graph {
+func GenBinaryTree(r, k int) *Graph {
 	g := NewGraph(k)
-	for i := 0; i < k; i++ {
+	for i := r; i < k; i++ {
 		if j := i*2 + 1; j < k {
 			g.AddEdge(i, j)
 		}
@@ -50,8 +50,9 @@ func GenBinaryTree(k int) *Graph {
 	return g
 }
 
-// create a dummy primary backup strategy
+// GenBinaryTreePrimaryBackup create a simple primary backup strategy
 func GenBinaryTreePrimaryBackup(numPrimaries, numBackups int) *Graph {
+	// TODO: refactor in terms of GenBinaryTree method
 	g := NewGraph(numPrimaries + numBackups)
 	for i := 0; i < numPrimaries; i++ {
 		if j := i*2 + 1; j < numPrimaries {
@@ -73,6 +74,8 @@ func GenBinaryTreePrimaryBackup(numPrimaries, numBackups int) *Graph {
 	}
 	return g
 }
+
+// func GenCustomTreePrimaryBackup()
 
 func GenBinaryTreeStar(peers PeerList) *Graph {
 	g := NewGraph(len(peers))

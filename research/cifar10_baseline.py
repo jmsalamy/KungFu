@@ -52,7 +52,7 @@ args = parser.parse_args()
 # Model and dataset params
 num_classes = 10
 learning_rate = 0.01
-batch_size = 32
+batch_size = 128
 epochs = 20
 
 
@@ -102,7 +102,7 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
 
     # Log to tensorboard for now
     if current_rank() == 0:
-        logdir = f"tensorboard-logs/{model_name}/" + \
+        logdir = "tensorboard-logs/{}/".format(model_name) + \
             datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
         callbacks.append(tensorboard_callback)
@@ -111,7 +111,7 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
               batch_size=batch_size,
               epochs=epochs,
               validation_data=(x_test, y_test),
-              shuffle=True,
+              shuffle=False,
               verbose=1,
               callbacks=callbacks)
 

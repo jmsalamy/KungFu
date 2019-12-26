@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 from kungfu._utils import map_maybe
 from kungfu.tensorflow.ops import (counter, current_cluster_size, current_rank,

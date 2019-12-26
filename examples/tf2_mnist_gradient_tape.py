@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import tensorflow as tf
 from kungfu import current_cluster_size, current_rank
 from kungfu.tensorflow.ops import reshape_strategy
@@ -6,16 +7,21 @@ from kungfu.tensorflow.optimizers import (PairAveragingOptimizer,
                                           SynchronousAveragingOptimizer,
                                           SynchronousSGDOptimizer)
 
+
 parser = argparse.ArgumentParser(description='KungFu mnist example.')
 parser.add_argument('--kf-optimizer',
                     type=str,
                     default='sync-sgd',
                     help='available options: sync-sgd, async-sgd, sma')
+parser.add_argument('--name',
+                    type=str,
+                    required=True
+                    help='name this experiement run for Tensorboard logging')
 args = parser.parse_args()
 
 DATASET_SIZE = 10000
 TRAIN_VAL_SPLIT = 0.8
-NUM_EPOCHS = 10
+NUM_EPOCHS = 20
 BATCH_SIZE = 100
 # adjust number of steps based on number of workers
 NUM_STEPS = (DATASET_SIZE // BATCH_SIZE) // current_cluster_size()
@@ -101,37 +107,58 @@ if __name__ == "__main__":
     val_acc_metric = tf.metrics.SparseCategoricalAccuracy()
     best_val_acc = 0
 
-    for epoch in range(NUM_EPOCHS):
-        print('Start of epoch %d' % (epoch+1,))
+    time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = f"tensorboard-logs/{args.name}/{time}"
+    summary_writer = tf.summary.create_file_writer(
+        log_dir, flush_millis=10000)
 
-        for batch, (images, labels) in enumerate(
-                train_dataset.take(NUM_STEPS)):
-            probs, loss_value = training_step(
-                mnist_model, opt, images, labels, batch == 0)
-            # print(f"batch number here is {batch}")
-            # update training metric
-            train_acc_metric(labels, probs)
+    step = 0
+    with summary_writer.as_default():
+        for epoch in range(NUM_EPOCHS):
+            print('Start of epoch %d' % (epoch+1,))
 
-            # Log loss metric every 10th batch only on the 0th worker
-            if batch % 10 == 0 and current_rank() == 0:
-                print('Training step #%d\tLoss: %.6f' % (batch, loss_value))
+            for batch, (images, labels) in enumerate(
+                    train_dataset.take(NUM_STEPS)):
+                probs, loss_value = training_step(
+                    mnist_model, opt, images, labels, batch == 0)
 
-        # Display metric at the end of each epoch
-        train_acc = train_acc_metric.result()
-        print('Training acc over epoch: %s' % (float(train_acc),))
-        # Reset training metric
-        train_acc_metric.reset_states()
+                step += 1
+                # print(f"batch number here is {batch}")
+                # update training metric
+                train_acc_metric(labels, probs)
 
-        # Run a validation loop at the end of each epoch.
-        for x_batch_val, y_batch_val in test_dataset:
-            val_logits = mnist_model(x_batch_val)
-            # Update val metrics
-            val_acc_metric(y_batch_val, val_logits)
+                # Log loss metric every 10th step only on the 0th worker
+                if step % 10 == 0 and current_rank() == 0:
+                    print('Training step #%d\tLoss: %.6f' %
+                          (step, loss_value))
+                    print('Training acc : %s' %
+                          float(train_acc_metric.result()))
+                    tf.summary.scalar(
+                        'training-loss', loss_value, step=step)
+                    tf.summary.scalar('training-accuracy',
+                                      float(train_acc_metric.result()), step=step)
+                    summary_writer.flush()
+                    
 
-        val_acc = val_acc_metric.result()
-        best_val_acc = max(val_acc, best_val_acc)
-        val_acc_metric.reset_states()
-        print(
-            f"VALIDATION ACCURACY : worker {current_rank()} | epoch  {epoch+1} | val_acc {float(val_acc)})")
-    print(
-        f"BEST VAL ACC OVER TRAINING: worker {current_rank()}, | best_val_acc {best_val_acc}")
+            # Display metric at the end of each epoch
+            train_acc = train_acc_metric.result()
+            print('Training acc over epoch: %s' % (float(train_acc),))
+            # Reset training metric
+            train_acc_metric.reset_states()
+
+            # Run a validation loop at the end of each epoch.
+            for x_batch_val, y_batch_val in test_dataset:
+                val_logits = mnist_model(x_batch_val)
+                # Update val metrics
+                val_acc_metric(y_batch_val, val_logits)
+
+            val_acc = val_acc_metric.result()
+            tf.summary.scalar('val_accuracy', float(val_acc), step=step)
+            summary_writer.flush()
+            
+            best_val_acc = max(val_acc, best_val_acc)
+            val_acc_metric.reset_states()
+            print(
+                f"VALIDATION ACCURACY : worker {current_rank()} | epoch  {epoch+1} | val_acc {float(val_acc)})")
+            print(
+                f"BEST VAL ACC OVER TRAINING: worker {current_rank()}, | best_val_acc {best_val_acc}")

@@ -15,14 +15,14 @@ parser.add_argument('--kf-optimizer',
                     help='available options: sync-sgd, async-sgd, sma')
 parser.add_argument('--name',
                     type=str,
-                    required=True
+                    required=True,
                     help='name this experiement run for Tensorboard logging')
 args = parser.parse_args()
 
-DATASET_SIZE = 10000
+DATASET_SIZE = 300
 TRAIN_VAL_SPLIT = 0.8
-NUM_EPOCHS = 20
-BATCH_SIZE = 100
+NUM_EPOCHS = 15
+BATCH_SIZE = 8
 # adjust number of steps based on number of workers
 NUM_STEPS = (DATASET_SIZE // BATCH_SIZE) // current_cluster_size()
 
@@ -40,7 +40,7 @@ def load_data():
     # smaller dataset for quick testing
     smaller_dataset = dataset.take(DATASET_SIZE)
     split = int(DATASET_SIZE*TRAIN_VAL_SPLIT)
-    train_dataset = smaller_dataset.take(split).batch(BATCH_SIZE)
+    train_dataset = smaller_dataset.take(split-120).batch(BATCH_SIZE)
     test_dataset = smaller_dataset.skip(split).batch(BATCH_SIZE)
     return train_dataset, test_dataset
 
@@ -128,7 +128,7 @@ if __name__ == "__main__":
                 train_acc_metric(labels, probs)
 
                 # Log loss metric every 10th step only on the 0th worker
-                if step % 10 == 0 and current_rank() == 0:
+                if step % 3 == 0 and current_rank() == 0:
                     print('Training step #%d\tLoss: %.6f' %
                           (step, loss_value))
                     print('Training acc : %s' %
@@ -152,9 +152,11 @@ if __name__ == "__main__":
                 # Update val metrics
                 val_acc_metric(y_batch_val, val_logits)
 
+            # log only on 0th worker to prevent corruption
             val_acc = val_acc_metric.result()
-            tf.summary.scalar('val_accuracy', float(val_acc), step=step)
-            summary_writer.flush()
+            if current_rank() == 0:
+                tf.summary.scalar('val_accuracy', float(val_acc), step=step)
+                summary_writer.flush()
             
             best_val_acc = max(val_acc, best_val_acc)
             val_acc_metric.reset_states()

@@ -10,6 +10,7 @@ The distributed optimizer defines how local gradients and model weights are sync
 from __future__ import absolute_import, division, print_function
 
 import logging
+import argparse
 import os
 from datetime import datetime
 
@@ -36,18 +37,29 @@ import preprocess_data
 # local imports
 from model_definition import Conv4_model
 
+parser = argparse.ArgumentParser(
+    description='CIFAR10 primary/backup Experiments')
+parser.add_argument('--kf-optimizer',
+                    type=str,
+                    default='sync-sgd',
+                    help='available options: sync-sgd, async-sgd, sma')
+parser.add_argument('--name',
+                    type=str,
+                    required=True,
+                    help='name this experiement run for Tensorboard logging')
+args = parser.parse_args()
+
 # Model and dataset params
-save_dir = os.path.join(os.getcwd(), 'saved_models')
 num_classes = 10
 learning_rate = 0.01
 batch_size = 32
-epochs = 1
+epochs = 20
 
 
-def build_optimizer(name, n_shards=1):
+def build_optimizer(name, n_workers=1):
     # Scale learning rate according to the level of data parallelism
     optimizer = tf.keras.optimizers.SGD(learning_rate=(learning_rate *
-                                                       n_shards))
+                                                       n_workers))
 
     # KUNGFU: Wrap the TensorFlow optimizer with KungFu distributed optimizers.
     if name == 'sync-sgd':
@@ -78,44 +90,33 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
     y_test = tf.keras.utils.to_categorical(y_test, num_classes)
 
     # Train model
-    n_shards = current_cluster_size()
+    n_workers = current_cluster_size()
     shard_id = current_rank()
     len_data = len(x_train)
 
     print("training set size:", x_train.shape, y_train.shape)
-    x_node, y_node = preprocess_data.data_shard(
-        x_train, y_train, n_shards, shard_id, len_data)
+    # x_node, y_node = preprocess_data.data_shard(
+    #     x_train, y_train, n_workers, shard_id, len_data)
 
     callbacks = [BroadcastGlobalVariablesCallback()]
 
-    # Save model and weights only on the rank 0 worker
-    # TODO: Saving model has a bug
-    # if current_rank() == 0:
-    #     if not os.path.isdir(save_dir):
-    #         os.makedirs(save_dir)
-    #     model_path = os.path.join(
-    #         save_dir, model_name, 'checkpoint-{epoch}.h5')
-
-    #     callbacks.append(tf.keras.callbacks.ModelCheckpoint(model_path))
-
     # Log to tensorboard for now
     if current_rank() == 0:
-        logdir = "tensorboard_logs/{}/scalars/".format(
-            model_name) + datetime.now().strftime("%Y%m%d-%H%M%S")
+        logdir = f"tensorboard-logs/{model_name}/" + \
+            datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
         callbacks.append(tensorboard_callback)
 
-    model.fit(x_node, y_node,
+    model.fit(x_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
               validation_data=(x_test, y_test),
               shuffle=True,
-              verbose=2,
+              verbose=1,
               callbacks=callbacks)
 
 
 def evaluate_trained_cifar10_model(model_name, x_test, y_test):
-    model_file = os.path.join("./saved_models/", model_name)
     model = load_model(model_file)
     x_test = x_test.astype('float32')
     x_test /= 255
@@ -136,7 +137,6 @@ if __name__ == "__main__":
     logging.basicConfig(filename="tf2_Conv4_CIFAR10_exp_0.log",
                         level=logging.DEBUG,
                         format="%(asctime)s:%(levelname)s:%(message)s")
-    print("n shards here: ", current_cluster_size())
     # Load data
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
     class_names = ["airplane", "automobile", "bird", "cat",
@@ -144,6 +144,6 @@ if __name__ == "__main__":
     # Pre process data
     x_train, y_train = preprocess_data.process(f_data, x_train, y_train)
 
-    optimizer = build_optimizer('sync-sgd', n_shards=current_cluster_size())
+    optimizer = build_optimizer('sync-sgd', n_workers=current_cluster_size())
     model = build_model(optimizer, x_train, num_classes)
-    train_model(model, "Conv4_CIFAR10_exp_0", x_train, x_test, y_train, y_test)
+    train_model(model, args.name, x_train, x_test, y_train, y_test)

@@ -54,6 +54,7 @@ func CreatePrimaryBackupStrategiesTesting(peers plan.PeerList) []strategy {
 	numPrimaries := 2
 	numBackups := 1
 	bcastGraph := plan.GenBinaryTreePrimaryBackup(numPrimaries, numBackups)
+	// bcastGraph.Debug()
 	return simpleSingleGraphStrategy((bcastGraph))
 }
 

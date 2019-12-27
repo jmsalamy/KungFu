@@ -60,6 +60,11 @@ parser.add_argument('--dataset-size',
                     default=50000,
                     help='size of the dataset for this test run')
 
+parser.add_argument('--backup-worker',
+                    type=int,
+                    required=True,
+                    help="-1 if using equal sharding")
+
 parser.add_argument('--name',
                     type=str,
                     required=True,
@@ -70,7 +75,7 @@ args = parser.parse_args()
 # Model and dataset params
 DATASET_SIZE = args.dataset_size
 BACKUP_FRAC = args.backup_frac
-BACKUP_WORKER_ID = 2
+BACKUP_WORKER_ID = args.backup_worker
 num_classes = 10
 learning_rate = 0.01
 batch_size = 128
@@ -102,7 +107,7 @@ def build_model(optimizer, x_train, num_classes):
     return model
 
 
-def load_data_per_node(x_train, y_train, dataset_size, backup_worker_id, backup_frac=0.1):
+def load_data_per_node(x_train, y_train, dataset_size, backup_worker_id, backup_frac):
 
     # custom size of the training data
     x_train, y_train = x_train[:DATASET_SIZE], y_train[:DATASET_SIZE]

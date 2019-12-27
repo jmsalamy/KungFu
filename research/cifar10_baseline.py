@@ -43,18 +43,38 @@ parser.add_argument('--kf-optimizer',
                     type=str,
                     default='sync-sgd',
                     help='available options: sync-sgd, async-sgd, sma')
+
+parser.add_argument('--epochs',
+                    type=int,
+                    default=15,
+                    help='number of epochs')
+
+
+parser.add_argument('--backup-frac',
+                    type=float,
+                    default=0.1,
+                    help='fraction of total data sharded in the backup worker')
+
+parser.add_argument('--dataset-size',
+                    type=int,
+                    default=50000,
+                    help='size of the dataset for this test run')
+
 parser.add_argument('--name',
                     type=str,
                     required=True,
                     help='name this experiement run for Tensorboard logging')
+
 args = parser.parse_args()
 
 # Model and dataset params
-DATASET_SIZE = 1000
+DATASET_SIZE = args.dataset_size
+BACKUP_FRAC = args.backup_frac
+BACKUP_WORKER_ID = 2
 num_classes = 10
 learning_rate = 0.01
 batch_size = 128
-epochs = 5
+epochs = args.epochs
 
 
 def build_optimizer(name, n_workers=1):
@@ -82,10 +102,7 @@ def build_model(optimizer, x_train, num_classes):
     return model
 
 
-def train_model(model, model_name, x_train, x_test, y_train, y_test):
-    # Pre-process dataset
-    x_test = x_test.astype('float32')
-    x_test /= 255
+def load_data_per_node(x_train, y_train, dataset_size, backup_worker_id, backup_frac=0.1):
 
     # custom size of the training data
     x_train, y_train = x_train[:DATASET_SIZE], y_train[:DATASET_SIZE]
@@ -98,12 +115,40 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
     shard_size = train_data_size // n_shards
     offset = shard_size * shard_id
 
-    # extract the data for learning of the KungFu node
-    x = x_train[offset:offset + shard_size]
-    y = y_train[offset:offset + shard_size]
-    print("Worker ID {} | start idx {} | end idx {} ".format(shard_id, offset, offset+shard_size))
+    # extract the data for learning of the KungFu primary nodes
+    x_node = x_train[offset:offset + shard_size]
+    y_node = y_train[offset:offset + shard_size]
+    num_images_backup = int(train_data_size * backup_frac)
 
-    print("Training set size:", x.shape, y.shape)
+    # extract the data for learning of the KungFu backup nodes
+    frac_data_per_worker = 1 / n_shards
+    repeat_nums = frac_data_per_worker // backup_frac
+    remainder = int(round(train_data_size *
+                          (frac_data_per_worker - backup_frac*repeat_nums)))
+    print("info : ", frac_data_per_worker, repeat_nums,
+          backup_frac*repeat_nums, remainder, train_data_size)
+
+    if shard_id == backup_worker_id:
+        x_distinct = x_train[offset:offset + shard_size][0:num_images_backup]
+        y_distinct = y_train[offset:offset + shard_size][0:num_images_backup]
+        x_repeat = x_distinct.repeat(repeat_nums, axis=0)
+        y_repeat = y_distinct.repeat(repeat_nums, axis=0)
+        x_node = np.concatenate((x_repeat, x_distinct[0:remainder]), axis=0)
+        y_node = np.concatenate((y_repeat, y_distinct[0:remainder]), axis=0)
+
+    print("Worker ID {} | start idx {} | end idx {} ".format(
+        shard_id, offset, offset+shard_size))
+    print("Training set size:", x_node.shape, y_node.shape)
+
+    return x_node, y_node
+
+
+def train_model(model, model_name, x_train, x_test, y_train, y_test):
+    # Pre-process dataset
+    x_test = x_test.astype('float32')
+    x_test /= 255
+    x, y = load_data_per_node(
+        x_train, y_train, DATASET_SIZE, backup_worker_id=BACKUP_WORKER_ID, backup_frac=BACKUP_FRAC)
 
     callbacks = [BroadcastGlobalVariablesCallback()]
 

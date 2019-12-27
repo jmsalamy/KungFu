@@ -44,4 +44,4 @@ kungfu.cbp
 Makefile.auto
 Testing/
 venv
-tensorboard_logs/
+tensorboard-logs/

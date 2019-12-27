@@ -50,10 +50,11 @@ parser.add_argument('--name',
 args = parser.parse_args()
 
 # Model and dataset params
+DATASET_SIZE = 1000
 num_classes = 10
 learning_rate = 0.01
 batch_size = 128
-epochs = 20
+epochs = 5
 
 
 def build_optimizer(name, n_workers=1):
@@ -86,17 +87,23 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
     x_test = x_test.astype('float32')
     x_test /= 255
 
-    # Convert class vectors to binary class matrices.
-    y_test = tf.keras.utils.to_categorical(y_test, num_classes)
+    # custom size of the training data
+    x_train, y_train = x_train[:DATASET_SIZE], y_train[:DATASET_SIZE]
 
-    # Train model
-    n_workers = current_cluster_size()
+    # shard the dataset for KungFu node
+    n_shards = current_cluster_size()
     shard_id = current_rank()
-    len_data = len(x_train)
+    train_data_size = len(x_train)
 
-    print("training set size:", x_train.shape, y_train.shape)
-    # x_node, y_node = preprocess_data.data_shard(
-    #     x_train, y_train, n_workers, shard_id, len_data)
+    shard_size = train_data_size // n_shards
+    offset = shard_size * shard_id
+
+    # extract the data for learning of the KungFu node
+    x = x_train[offset:offset + shard_size]
+    y = y_train[offset:offset + shard_size]
+    print("Worker ID {} | start idx {} | end idx {} ".format(shard_id, offset, offset+shard_size))
+
+    print("Training set size:", x.shape, y.shape)
 
     callbacks = [BroadcastGlobalVariablesCallback()]
 
@@ -107,7 +114,11 @@ def train_model(model, model_name, x_train, x_test, y_train, y_test):
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
         callbacks.append(tensorboard_callback)
 
-    model.fit(x_train, y_train,
+    # Convert class vectors to binary class matrices.
+    y_test = tf.keras.utils.to_categorical(y_test, num_classes)
+
+    # train the model
+    model.fit(x, y,
               batch_size=batch_size,
               epochs=epochs,
               validation_data=(x_test, y_test),

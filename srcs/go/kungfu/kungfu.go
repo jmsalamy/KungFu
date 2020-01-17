@@ -249,7 +249,7 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 func (kf *Kungfu) nextStrategy() []strategy {
 	// generate custom strategies here for experiments
 	// next, modify this method to work with a specific monitored metric
-	strategy := CreatePrimaryBackupStrategiesTesting(kf.currentPeers)
+	strategy := createStarPrimaryBackupStrategies(kf.currentPeers)
 	s := strategy
 	return s
 }

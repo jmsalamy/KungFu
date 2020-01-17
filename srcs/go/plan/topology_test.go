@@ -92,3 +92,11 @@ func Test_PrimaryBackupTree(t *testing.T) {
 		t.Errorf("primary backup binary tree not generated correctly")
 	}
 }
+
+func Test_GenCircularGraphPair(t *testing.T) {
+	// k := 5
+	// // b := GenSimpleRingStrategy(k)
+	// fmt.Println("------------------------------")
+	// b.Debug()
+	t.Errorf("code here")
+}

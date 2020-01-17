@@ -121,3 +121,22 @@ func GenCircularGraphPair(k, r int) (*Graph, *Graph) {
 	}
 	return g, b
 }
+
+func GenStarPrimaryBackupGraphPair(root, numPrimaries, numBackups int) (*Graph, *Graph) {
+	b := NewGraph(numPrimaries + numBackups)
+	r := NewGraph(numPrimaries + numBackups)
+
+	for i := 0; i < numPrimaries; i++ {
+		r.AddEdge(i, i)
+		if i != root {
+			r.AddEdge(i, root)
+		}
+	}
+
+	for i := 0; i < numPrimaries+numBackups; i++ {
+		if i != root {
+			b.AddEdge(root, i)
+		}
+	}
+	return r, b
+}

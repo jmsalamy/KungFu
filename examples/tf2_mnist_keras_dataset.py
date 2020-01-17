@@ -61,7 +61,7 @@ verbose = 1 if current_rank() == 0 else 0
 # Train the model.
 # KungFu: adjust number of steps based on number of GPUs.
 mnist_model.fit(train_dataset,
-                steps_per_epoch=500 // current_cluster_size(),
+                steps_per_epoch=1000 // current_cluster_size(),
                 epochs=1,
                 callbacks=callbacks,
                 verbose=verbose)

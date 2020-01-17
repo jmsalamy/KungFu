@@ -19,10 +19,15 @@ var partitionStrategies = map[kb.Strategy]partitionStrategy{
 }
 
 func simpleSingleGraphStrategy(bcastGraph *plan.Graph) []strategy {
+	r := plan.GenDefaultReduceGraph(bcastGraph)
+	b := bcastGraph
+	// r.Debug()
+	// b.Debug()
+
 	return []strategy{
 		{
-			reduceGraph: plan.GenDefaultReduceGraph(bcastGraph),
-			bcastGraph:  bcastGraph,
+			reduceGraph: r,
+			bcastGraph:  b,
 		},
 	}
 }
@@ -50,12 +55,8 @@ func CreatePrimaryBackupStrategies(peers plan.PeerList) []strategy {
 }
 
 func CreatePrimaryBackupStrategiesTesting(peers plan.PeerList) []strategy {
-	// modify number of workers here for custom testing
-	numPrimaries := 64 
-	numBackups := 16 
-	bcastGraph := plan.GenBinaryTreePrimaryBackup(numPrimaries, numBackups)
-	// bcastGraph.Debug()
-	return simpleSingleGraphStrategy((bcastGraph))
+	// method for inserting custom strategies for testing purposes.
+	return createStarPrimaryBackupStrategies(peers)
 }
 
 func createBinaryTreeStarStrategies(peers plan.PeerList) []strategy {
@@ -87,6 +88,19 @@ func createRingStrategies(peers plan.PeerList) []strategy {
 			bcastGraph:  bcastGraph,
 		})
 	}
+	return ss
+}
+
+func createStarPrimaryBackupStrategies(peers plan.PeerList) []strategy {
+	k := len(peers)
+	reduceGraph, bcastGraph := plan.GenStarPrimaryBackupGraphPair(0, k-1, 1)
+	var ss []strategy
+	ss = append(ss, strategy{
+		reduceGraph: reduceGraph,
+		bcastGraph:  bcastGraph,
+	})
+	reduceGraph.Debug()
+	bcastGraph.Debug()
 	return ss
 }
 

@@ -183,6 +183,7 @@ func (sess *session) runGather(w Workspace) error {
 }
 
 func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
+
 	if len(sess.peers) == 1 {
 		w.RecvBuf.CopyFrom(w.SendBuf)
 		return nil
@@ -205,6 +206,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	var lock sync.Mutex
 	recvOnto := func(peer plan.PeerID) error {
 		m := sess.router.Collective.Recv(peer.WithName(w.Name))
+		// log.Debugf("-----------------------  comes here 0 --------------")
 		b := &kb.Vector{Data: m.Data, Count: w.SendBuf.Count, Type: w.SendBuf.Type}
 		lock.Lock()
 		defer lock.Unlock()
@@ -214,7 +216,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			kb.Transform(w.RecvBuf, b, w.OP)
 		}
 		recvCount++
-		rch.PutBuf(m.Data) // Recycle buffer on the RecvOnto path
+		rch.PutBuf(m.Data) // Recycle buffer on the RecvOntyo path
 		return nil
 	}
 
@@ -223,7 +225,6 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 		recvCount++
 	}
 
-	par := func(ranks []int, op func(plan.PeerID) error) error {
 		errs := make([]error, len(ranks))
 		var wg sync.WaitGroup
 		for i, rank := range ranks {
@@ -244,15 +245,20 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	}
 
 	for _, g := range graphs {
-		prevs := g.Prevs(sess.rank)
 		if g.IsSelfLoop(sess.rank) {
-			if err := par(prevs, recvOnto); err != nil {
-				return err
+			// TODO: modify to adjust for general backup servers
+			if sess.rank != len(sess.peers)-1 {
+				prevs := g.Prevs(sess.rank)
+				if err := par(prevs, recvOnto); err != nil {
+					return err
+				}
+				if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
+					return err
+				}
 			}
-			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
-				return err
-			}
+
 		} else {
+			prevs := g.Prevs(sess.rank)
 			if len(prevs) > 1 {
 				log.Errorf("more than once recvInto detected at node %d", sess.rank)
 			}

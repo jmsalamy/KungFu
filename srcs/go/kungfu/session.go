@@ -206,7 +206,6 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	var lock sync.Mutex
 	recvOnto := func(peer plan.PeerID) error {
 		m := sess.router.Collective.Recv(peer.WithName(w.Name))
-		// log.Debugf("-----------------------  comes here 0 --------------")
 		b := &kb.Vector{Data: m.Data, Count: w.SendBuf.Count, Type: w.SendBuf.Type}
 		lock.Lock()
 		defer lock.Unlock()
@@ -216,7 +215,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			kb.Transform(w.RecvBuf, b, w.OP)
 		}
 		recvCount++
-		rch.PutBuf(m.Data) // Recycle buffer on the RecvOntyo path
+		rch.PutBuf(m.Data) // Recycle buffer on the RecvOnto path
 		return nil
 	}
 
@@ -225,6 +224,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 		recvCount++
 	}
 
+	par := func(ranks []int, op func(plan.PeerID) error) error {
 		errs := make([]error, len(ranks))
 		var wg sync.WaitGroup
 		for i, rank := range ranks {

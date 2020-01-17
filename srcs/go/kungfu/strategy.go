@@ -99,8 +99,8 @@ func createStarPrimaryBackupStrategies(peers plan.PeerList) []strategy {
 		reduceGraph: reduceGraph,
 		bcastGraph:  bcastGraph,
 	})
-	reduceGraph.Debug()
-	bcastGraph.Debug()
+	// reduceGraph.Debug()
+	// bcastGraph.Debug()
 	return ss
 }
 

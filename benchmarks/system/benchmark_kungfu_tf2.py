@@ -14,6 +14,9 @@ from kungfu import current_cluster_size, current_rank
 from kungfu.tensorflow.optimizers import (PairAveragingOptimizer,
                                           SynchronousAveragingOptimizer,
                                           SynchronousSGDOptimizer)
+
+from kungfu.tensorflow.ops import (all_reduce, barrier, reshape_strategy)
+
 from tensorflow.keras import applications
 
 # Benchmark settings
@@ -34,7 +37,7 @@ parser.add_argument('--batch-size',
                     help='input batch size')
 parser.add_argument('--num-warmup-batches',
                     type=int,
-                    default=10,
+                    default=1,
                     help='number of warm-up batches')
 parser.add_argument('--num-batches-per-iter',
                     type=int,
@@ -42,10 +45,10 @@ parser.add_argument('--num-batches-per-iter',
                     help='number of batches per benchmark iteration')
 parser.add_argument('--num-iters',
                     type=int,
-                    default=10,
+                    default=5,
                     help='number of benchmark iterations')
 parser.add_argument('--no-cuda',
-                    action='store_true',
+                    type=bool,
                     default=False,
                     help='disables CUDA training')
 parser.add_argument('--kf-optimizer',
@@ -81,13 +84,16 @@ target = tf.random.uniform([args.batch_size, 1],
 
 @tf.function
 def benchmark_step(first_batch):
-
+    # reshape strategy here 
+    reshape_strategy(debug=False)
+    # gradient calculation and updates
     with tf.GradientTape() as tape:
         probs = model(data, training=True)
         loss = tf.losses.categorical_crossentropy(target, probs)
 
     gradients = tape.gradient(loss, model.trainable_variables)
     opt.apply_gradients(zip(gradients, model.trainable_variables))
+    
 
     if first_batch:
         from kungfu.tensorflow.initializer import broadcast_variables

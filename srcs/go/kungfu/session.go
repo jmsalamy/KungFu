@@ -22,15 +22,16 @@ type strategy struct {
 
 // session contains the immutable topology and strategies for a given period of logical duration
 type session struct {
-	strategies []strategy
-	self       plan.PeerID
-	peers      plan.PeerList
-	rank       int
-	localRank  int
-	router     *rch.Router
+	strategies    []strategy
+	self          plan.PeerID
+	peers         plan.PeerList
+	rank          int
+	localRank     int
+	router        *rch.Router
+	backupEnabled bool
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -43,12 +44,13 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 		strategy = autoSelect(pl)
 	}
 	sess := &session{
-		strategies: partitionStrategies[strategy](pl),
-		self:       self,
-		peers:      pl,
-		rank:       rank,
-		localRank:  localRank,
-		router:     router,
+		strategies:    partitionStrategies[strategy](pl),
+		self:          self,
+		peers:         pl,
+		rank:          rank,
+		localRank:     localRank,
+		router:        router,
+		backupEnabled: backup,
 	}
 	return sess, true
 }
@@ -246,8 +248,8 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 
 	for _, g := range graphs {
 		if g.IsSelfLoop(sess.rank) {
-			// TODO: modify to adjust for general backup servers
-			if sess.rank != len(sess.peers)-1 {
+			// TODO: modify to adjust for general backup servers.
+			if sess.backupEnabled != false {
 				prevs := g.Prevs(sess.rank)
 				if err := par(prevs, recvOnto); err != nil {
 					return err
@@ -255,6 +257,18 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 				if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
 					return err
 				}
+			}
+			if sess.backupEnabled == true {
+				if sess.rank != len(sess.peers)-1 {
+					prevs := g.Prevs(sess.rank)
+					if err := par(prevs, recvOnto); err != nil {
+						return err
+					}
+					if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
+						return err
+					}
+				}
+
 			}
 
 		} else {

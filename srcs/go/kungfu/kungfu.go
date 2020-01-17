@@ -61,6 +61,7 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 		single:       config.Single,
 		router:       router,
 		server:       server,
+		strategyIdx:  1,
 	}, nil
 }
 
@@ -121,16 +122,16 @@ func (kf *Kungfu) Update() bool {
 	return kf.updateTo(kf.currentPeers)
 }
 
-func (kf *Kungfu) UpdateStrategy(newStrategy []strategy) bool {
+func (kf *Kungfu) UpdateStrategy(newStrategy []strategy, backup bool) bool {
 	kf.Lock()
 	defer kf.Unlock()
-	return kf.UpdateStrategyTo(newStrategy)
+	return kf.UpdateStrategyTo(newStrategy, backup)
 }
 
-func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy) bool {
+func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy, backup bool) bool {
 	// TODO : add check to bypass method if unnecessary
-	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router)
-	log.Debugf("strategy before: ", sess.strategies)
+	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, backup)
+	// log.Debugf("strategy before: ", sess.strategies)
 	sess.strategies = newStrategy
 	if !exist {
 		return false
@@ -138,7 +139,7 @@ func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy) bool {
 	if err := sess.barrier(); err != nil {
 		utils.ExitErr(fmt.Errorf("barrier failed after newSession: %v", err))
 	}
-	log.Debugf("strategy after: ", sess.strategies)
+	// log.Debugf("strategy after: ", sess.strategies)
 	kf.currentSession = sess
 	kf.updated = true
 	return true
@@ -151,7 +152,7 @@ func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
 	}
 	log.Debugf("Kungfu::updateTo(%s), %d peers", pl, len(pl))
 	kf.router.ResetConnections(pl)
-	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router)
+	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, false)
 	if !exist {
 		return false
 	}
@@ -244,23 +245,29 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 		kf.Update()
 	}
 	return changed, keep, nil
-}
+}df
 
-func (kf *Kungfu) nextStrategy() []strategy {
+func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	// generate custom strategies here for experiments
 	// next, modify this method to work with a specific monitored metric
-	strategy := createStarPrimaryBackupStrategies(kf.currentPeers)
-	s := strategy
-	return s
+	strategy1 := createStarPrimaryBackupStrategies(kf.currentPeers)
+	strategy2 := createStarStrategies(kf.currentPeers)
+	log.Debugf(string(kf.strategyIdx))
+	if kf.strategyIdx%2 == 0 {
+		return strategy2, false
+	}
+	return strategy1, true
+
 }
 
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy() (bool, error) {
-	newStrategy := kf.nextStrategy()
-	log.Debugf("switching to strategy : ", newStrategy)
+	newStrategy, backup := kf.nextStrategy()
+	// log.Debugf("switching to strategy : ", newStrategy)
 	strategyChanged := kf.proposeStrategy(newStrategy)
 	if strategyChanged {
-		kf.UpdateStrategy(newStrategy)
+		kf.UpdateStrategy(newStrategy, backup)
 	}
+	kf.strategyIdx++
 	return strategyChanged, nil
 }

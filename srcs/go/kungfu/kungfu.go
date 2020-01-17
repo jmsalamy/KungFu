@@ -245,7 +245,7 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 		kf.Update()
 	}
 	return changed, keep, nil
-}df
+}
 
 func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	// generate custom strategies here for experiments

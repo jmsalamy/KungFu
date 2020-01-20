@@ -37,15 +37,15 @@ parser.add_argument('--batch-size',
                     help='input batch size')
 parser.add_argument('--num-warmup-batches',
                     type=int,
-                    default=1,
+                    default=100,
                     help='number of warm-up batches')
 parser.add_argument('--num-batches-per-iter',
                     type=int,
-                    default=10,
+                    default=1,
                     help='number of batches per benchmark iteration')
 parser.add_argument('--num-iters',
                     type=int,
-                    default=5,
+                    default=200,
                     help='number of benchmark iterations')
 parser.add_argument('--no-cuda',
                     type=bool,
@@ -55,6 +55,11 @@ parser.add_argument('--kf-optimizer',
                     type=str,
                     default='sync-sgd',
                     help='kungfu optimizer')
+parser.add_argument('--reshape_on', 
+                    type=bool, 
+                    required=True, 
+                    help='turn on/off reshape strategy method')
+
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda
@@ -85,7 +90,8 @@ target = tf.random.uniform([args.batch_size, 1],
 @tf.function
 def benchmark_step(first_batch):
     # reshape strategy here 
-    reshape_strategy(debug=False)
+    if args.reshape_on:
+        reshape_strategy(debug=False)
     # gradient calculation and updates
     with tf.GradientTape() as tape:
         probs = model(data, training=True)
@@ -122,14 +128,18 @@ with tf.device(device):
     # Benchmark
     log('Running benchmark...')
     img_secs = []
+    iteration_time = []
     for x in range(args.num_iters):
         time = timeit.timeit(lambda: benchmark_step(first_batch=False),
                              number=args.num_batches_per_iter)
         img_sec = args.batch_size * args.num_batches_per_iter / time
         log('Iter #%d: %.1f img/sec per %s' % (x, img_sec, device))
+        log('iteration time : %.1f' % time)
         img_secs.append(img_sec)
+        iteration_time.append(time)
 
     # Results
+    log('mean iteration time: %.1f' % np.mean(iteration_time)) 
     img_sec_mean = np.mean(img_secs)
     img_sec_conf = 1.96 * np.std(img_secs)
     log('Img/sec per %s: %.1f +-%.1f' % (device, img_sec_mean, img_sec_conf))

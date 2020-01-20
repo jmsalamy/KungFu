@@ -55,9 +55,9 @@ parser.add_argument('--kf-optimizer',
                     type=str,
                     default='sync-sgd',
                     help='kungfu optimizer')
-parser.add_argument('--reshape_on', 
+parser.add_argument('--reshape-on', 
                     type=bool, 
-                    required=True, 
+                    default=False,
                     help='turn on/off reshape strategy method')
 
 
@@ -91,6 +91,7 @@ target = tf.random.uniform([args.batch_size, 1],
 def benchmark_step(first_batch):
     # reshape strategy here 
     if args.reshape_on:
+        log("reshaping strategy is on ------------------------------------------------------------------")
         reshape_strategy(debug=False)
     # gradient calculation and updates
     with tf.GradientTape() as tape:

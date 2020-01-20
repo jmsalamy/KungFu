@@ -133,13 +133,13 @@ with tf.device(device):
         time = timeit.timeit(lambda: benchmark_step(first_batch=False),
                              number=args.num_batches_per_iter)
         img_sec = args.batch_size * args.num_batches_per_iter / time
-        log('Iter #%d: %.1f img/sec per %s' % (x, img_sec, device))
-        log('iteration time : %.1f' % time)
+        log('Iter #%d: %.2f img/sec per %s' % (x, img_sec, device))
+        log('iteration time : %.3f' % time)
         img_secs.append(img_sec)
         iteration_time.append(time)
 
     # Results
-    log('mean iteration time: %.1f' % np.mean(iteration_time)) 
+    log('mean iteration time: %.3f' % np.mean(iteration_time)) 
     img_sec_mean = np.mean(img_secs)
     img_sec_conf = 1.96 * np.std(img_secs)
     log('Img/sec per %s: %.1f +-%.1f' % (device, img_sec_mean, img_sec_conf))

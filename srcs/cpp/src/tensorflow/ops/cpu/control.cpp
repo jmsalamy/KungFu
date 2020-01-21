@@ -71,9 +71,6 @@ class ReshapeStrategy : public OpKernel
     {
     //     const std::string &chpt = context->input(0).scalar<std::string>()();
     //     const int32_t new_size  = context->input(1).scalar<int32_t>()();
-        if (debug_) {
-            LOG(WARNING) << "ReshapeCluster:: compute called with strategy";
-        }
         Tensor *changed = nullptr;
         OP_REQUIRES_OK(
             context, context->allocate_output(0, MakeTensorShape(), &changed));

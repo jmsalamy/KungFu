@@ -82,11 +82,12 @@ python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=..
 
 # final run n machines 
 
-kungfu-run -np 20 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
+kungfu-run -np 16 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
 -logdir logs/debug/ \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --reshape-on=True
+
 
 # --------------------------------------
 # Misc. 
@@ -102,6 +103,7 @@ y
 cd ../src/KungFu
 git pull 
 pip uninstall KungFu
+
 pip wheel -vvv --no-index ./
 pip install --no-index ./
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run

@@ -249,24 +249,13 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	for _, g := range graphs {
 		if g.IsSelfLoop(sess.rank) {
 			// TODO: modify to adjust for general backup servers.
-			if sess.backupEnabled != false {
+			if sess.backupEnabled == true && sess.rank != len(sess.peers)-1 {
 				prevs := g.Prevs(sess.rank)
 				if err := par(prevs, recvOnto); err != nil {
 					return err
 				}
 				if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
 					return err
-				}
-			}
-			if sess.backupEnabled == true {
-				if sess.rank != len(sess.peers)-1 {
-					prevs := g.Prevs(sess.rank)
-					if err := par(prevs, recvOnto); err != nil {
-						return err
-					}
-					if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
-						return err
-					}
 				}
 
 			}

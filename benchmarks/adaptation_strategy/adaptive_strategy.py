@@ -6,7 +6,7 @@ from kungfu.tensorflow.ops import (all_reduce, barrier, current_cluster_size,
 import tensorflow as tf
 import argparse
 import time
-
+import numpy as np
 
 # disable eager execution for tf2 compat
 # tf.compat.v1.disable_eager_execution()
@@ -34,7 +34,8 @@ def show_duration(duration):
 x = tf.ones((10,1), dtype=tf.int32)
 print(x.numpy())
 
-steps = 10
+steps = 1000
+mean_time = []
 for i in range(steps):
     t0 = time.time()
     v = all_reduce(x)
@@ -42,8 +43,11 @@ for i in range(steps):
             (i, show_duration(time.time() - t0)))
 
     t0 = time.time()
-    keep = reshape_strategy()
+    keep = reshape_strategy(debug=False)
+    iteration_time = time.time() - t0
     print('reshape took %s' %
-            (show_duration(time.time() - t0)))
+            (show_duration(iteration_time)))
+    mean_time.append(iteration_time)
     if not keep:
         break
+print(np.mean(mean_time))

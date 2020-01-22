@@ -91,7 +91,7 @@ target = tf.random.uniform([args.batch_size, 1],
 def benchmark_step(first_batch):
     # reshape strategy here 
     if args.reshape_on:
-        log("reshaping strategy is on ------------------------------------------------------------------")
+        log("reshaping strategy is on ----------------------------------------")
         reshape_strategy(debug=False)
     # gradient calculation and updates
     with tf.GradientTape() as tape:

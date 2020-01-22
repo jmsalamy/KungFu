@@ -122,23 +122,38 @@ func GenCircularGraphPair(k, r int) (*Graph, *Graph) {
 	return g, b
 }
 
-func GenStarPrimaryBackupGraphPair(root, numPrimaries, numBackups int) (*Graph, *Graph) {
-	b := NewGraph(numPrimaries + numBackups)
-	r := NewGraph(numPrimaries + numBackups)
+// GenBinaryTreeStarPrimaryBackupGraphPair generates primary-backup strategy based off of BinaryTreeStar Default strategy
+func GenBinaryTreeStarPrimaryBackupGraphPair(peers PeerList, numPrimaries, numBackups int) (*Graph, *Graph) {
+	// Generate default broadcast graph for BinaryTreeStar
+	b := GenBinaryTreeStar(peers)
 
-	for i := 0; i < numPrimaries; i++ {
-		r.AddEdge(i, i)
-		if i != root {
-			r.AddEdge(i, root)
+	// Generate custom reduceGraph to allow for primary-backup strategy
+	r := NewGraph(len(peers))
+	k := len(r.Nodes)
+	numPeers := len(peers) - 1
+	// add self loops first
+
+	masters, hostMaster := getLocalMasters(peers)
+	for rank, p := range peers {
+		if master := hostMaster[p.IPv4]; master != rank && rank != numPeers {
+			r.AddEdge(master, rank)
 		}
 	}
-
-	r.AddEdge(numPrimaries, numPrimaries)
-
-	for i := 0; i < numPrimaries; i++ {
-		if i != root {
-			b.AddEdge(root, i)
+	if k := len(masters); k > 1 {
+		for i := 0; i < k; i++ {
+			if j := i*2 + 1; j < k && j != numPeers {
+				r.AddEdge(masters[i], masters[j])
+			}
+			if j := i*2 + 2; j < k && j != numPeers {
+				r.AddEdge(masters[i], masters[j])
+			}
 		}
 	}
-	return r, b
+	reduceGraphReversed := r.Reverse()
+	for i := 0; i < k; i++ {
+		reduceGraphReversed.AddEdge(i, i)
+	}
+	reduceGraphReversed.Debug()
+	b.Debug()
+	return reduceGraphReversed, b
 }

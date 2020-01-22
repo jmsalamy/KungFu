@@ -82,18 +82,35 @@ python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=..
 
 # final run n machines 
 
-kungfu-run -np 20 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
+kungfu-run -np 16 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
 -logdir logs/debug/ \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
+-strategy STAR \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+
+
+kungfu-run -np 8 \
+-H 10.128.0.14:4,10.128.0.15:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy BINARY_TREE_STAR \
+python examples/tf2_mnist_keras.py
+
+
+kungfu-run -np 12 \
+-H 10.128.0.14:3,10.128.0.15:3,10.128.0.16:3,10.128.0.17:3 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy STAR \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
 
 
 kungfu-run -np 40 \
 -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4,10.128.0.19:4,10.128.0.20:4,10.128.0.21:4,10.128.0.22:4,10.128.0.23:4 \
 -nic eth0 \
 -logdir logs/debug/ \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --reshape-on=True --num-warmup-batches=100
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=100
 
 
 

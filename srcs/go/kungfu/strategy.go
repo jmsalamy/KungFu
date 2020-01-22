@@ -21,8 +21,8 @@ var partitionStrategies = map[kb.Strategy]partitionStrategy{
 func simpleSingleGraphStrategy(bcastGraph *plan.Graph) []strategy {
 	r := plan.GenDefaultReduceGraph(bcastGraph)
 	b := bcastGraph
-	// r.Debug()
-	// b.Debug()
+	r.Debug()
+	b.Debug()
 
 	return []strategy{
 		{
@@ -93,7 +93,7 @@ func createRingStrategies(peers plan.PeerList) []strategy {
 
 func createStarPrimaryBackupStrategies(peers plan.PeerList) []strategy {
 	k := len(peers)
-	reduceGraph, bcastGraph := plan.GenStarPrimaryBackupGraphPair(0, k-1, 1)
+	reduceGraph, bcastGraph := plan.GenBinaryTreeStarPrimaryBackupGraphPair(peers, k-1, 1)
 	var ss []strategy
 	ss = append(ss, strategy{
 		reduceGraph: reduceGraph,

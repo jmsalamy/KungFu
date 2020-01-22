@@ -133,6 +133,8 @@ func GenStarPrimaryBackupGraphPair(root, numPrimaries, numBackups int) (*Graph, 
 		}
 	}
 
+	r.AddEdge(numPrimaries, numPrimaries)
+
 	for i := 0; i < numPrimaries+numBackups; i++ {
 		if i != root {
 			b.AddEdge(root, i)

@@ -250,25 +250,14 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 		// reduce graph
 		if g.IsSelfLoop(sess.rank) {
 			// TODO: modify to adjust for general backup servers.
-			if sess.backupEnabled == true {
-				if sess.rank != len(sess.peers)-1 {
-					prevs := g.Prevs(sess.rank)
-					if err := par(prevs, recvOnto); err != nil {
-						return err
-					}
-					if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
-						return err
-					}
-				}
-			} else {
-				prevs := g.Prevs(sess.rank)
-				if err := par(prevs, recvOnto); err != nil {
-					return err
-				}
-				if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
-					return err
-				}
+			prevs := g.Prevs(sess.rank)
+			if err := par(prevs, recvOnto); err != nil {
+				return err
 			}
+			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
+				return err
+			}
+
 			// broadcast graph
 		} else {
 			prevs := g.Prevs(sess.rank)

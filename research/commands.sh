@@ -82,11 +82,20 @@ python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=..
 
 # final run n machines 
 
-kungfu-run -np 16 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
+kungfu-run -np 20 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
 -nic eth0 \
 -logdir logs/debug/ \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --reshape-on=True
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
+
+
+kungfu-run -np 40 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4,10.128.0.19:4,10.128.0.20:4,10.128.0.21:4,10.128.0.22:4,10.128.0.23:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --reshape-on=True --num-warmup-batches=100
+
+
 
 
 # --------------------------------------
@@ -100,10 +109,12 @@ cd ../src/KungFu
 pip uninstall KungFu
 y
 
-cd ../src/KungFu
+cd src/KungFu
 git pull 
 pip uninstall KungFu
 
+cd src/KungFu
+git pull 
 pip wheel -vvv --no-index ./
 pip install --no-index ./
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run

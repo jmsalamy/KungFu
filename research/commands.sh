@@ -98,12 +98,20 @@ kungfu-run -np 8 \
 python examples/tf2_mnist_keras.py
 
 
-kungfu-run -np 12 \
--H 10.128.0.14:3,10.128.0.15:3,10.128.0.16:3,10.128.0.17:3 \
+kungfu-run -np 16 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
 -logdir logs/debug/ \
--strategy STAR \
+-strategy PRIMARY_BACKUP_TESTING \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+
+
+kungfu-run -np 8 \
+-H 10.128.0.14:4,10.128.0.15:4 \
+-nic eth0 \
+-logdir logs/debug \
+-strategy PRIMARY_BACKUP_TESTING \
+python examples/tf2_mnist_keras.py
 
 
 kungfu-run -np 40 \
@@ -122,22 +130,16 @@ rm src/official/vision/image_classification/evaluate_model.py
 git checkout .
 git pull
 
-cd ../src/KungFu
-pip uninstall KungFu
-y
+
 
 cd src/KungFu
+yes | pip uninstall KungFu
 git pull 
 pip uninstall KungFu
-
-cd src/KungFu
-git pull 
 pip wheel -vvv --no-index ./
 pip install --no-index ./
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run
 export PATH=$PATH:$(pwd)/bin
-
-cd ../../resnet-test-kungfu/src/
 
 
 #iperf testing kungfu-run 

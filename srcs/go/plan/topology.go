@@ -122,13 +122,15 @@ func GenCircularGraphPair(k, r int) (*Graph, *Graph) {
 	return g, b
 }
 
-func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int, primaries []int) (*Graph, *Graph) {
+func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int, primaries, backups []int) (*Graph, *Graph) {
 	r := NewGraph(k)
 	b := NewGraph(k)
+
 	for i := 0; i < k; i++ {
 		r.AddEdge(i, i)
 	}
 
+	var bcastGraphLastNode int
 	for i := 0; i < len(primaries); i++ {
 		fromNode, toNode := primaries[i], primaries[(i+1)%len(primaries)]
 		if i != reduceEdgeToRemove {
@@ -137,11 +139,17 @@ func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int
 		}
 		if i != bcastEdgeToRemove {
 			b.AddEdge(fromNode, toNode)
+			bcastGraphLastNode = toNode
 		}
 	}
 
 	// add final bcastGraph edge for pushing values to the disconnected worker
-
+	fromNode := bcastGraphLastNode
+	for i := 0; i < len(backups); i++ {
+		toNode := backups[i]
+		b.AddEdge(fromNode, toNode)
+		fromNode = toNode
+	}
 	// start with a full ring and remove the appropriate 1 edge to create a rooted ring topology for reduce
 	// and bcast graph
 	return r, b

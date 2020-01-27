@@ -103,17 +103,21 @@ func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]bool) []
 	var ss []strategy
 
 	var primaries []int
+	var backups []int
 
 	for i := 0; i < k; i++ {
 		if config[i] {
 			primaries = append(primaries, i)
+		}
+		if !config[i] {
+			backups = append(backups, i)
 		}
 	}
 	numActive := len(primaries)
 
 	for r := 0; r < k; r++ {
 		reduceEdgeToRemove, bcastEdgeToRemove := r, (r+(numActive-1))%numActive
-		reduceGraph, bcastGraph := plan.GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove, primaries)
+		reduceGraph, bcastGraph := plan.GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove, primaries, backups)
 		reduceGraph.Debug()
 		bcastGraph.Debug()
 		ss = append(ss, strategy{

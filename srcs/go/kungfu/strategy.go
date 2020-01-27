@@ -59,8 +59,8 @@ func CreatePrimaryBackupStrategiesTesting(peers plan.PeerList) []strategy {
 	config := map[int]bool{
 		0: true,
 		1: true,
-		2: false,
-		3: true,
+		2: true,
+		3: false,
 		4: true,
 	}
 	return createRingStrategiesFromConfig(peers, config)
@@ -150,4 +150,23 @@ func autoSelect(peers plan.PeerList) kb.Strategy {
 		return kb.Star
 	}
 	return kb.BinaryTreeStar
+}
+
+type Delay struct {
+	IterationID int
+	NodeID      int
+	TimeDelay   int
+}
+
+func GenerateConfigFromDelay(k int, delay Delay) map[int]bool {
+	config := make(map[int]bool)
+	for i := 0; i < k; i++ {
+		if delay.NodeID == i {
+			config[i] = false
+		} else {
+			config[i] = true
+
+		}
+	}
+	return config
 }

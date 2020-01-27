@@ -248,12 +248,11 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	// generate custom strategies here for experiments
 	// next, modify this method to work with a specific monitored metric
-	strategy1 := createStarPrimaryBackupStrategies(kf.currentPeers)
-	strategy2 := createBinaryTreeStarStrategies(kf.currentPeers)
-	if kf.strategyIdx%2 == 0 {
-		return strategy2, false
-	}
-	return strategy1, true
+	delay := Delay{1, 3, 100}
+	config := GenerateConfigFromDelay(len(kf.currentPeers), delay)
+	strategy := createRingStrategiesFromConfig(kf.currentPeers, config)
+	backup := true
+	return strategy, backup
 
 }
 
@@ -261,6 +260,7 @@ func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 func (kf *Kungfu) ReshapeStrategy() (bool, error) {
 	newStrategy, backup := kf.nextStrategy()
 	strategyChanged := kf.proposeStrategy(newStrategy)
+
 	if strategyChanged {
 		kf.UpdateStrategy(newStrategy, backup)
 	}

@@ -34,7 +34,7 @@ def show_duration(duration):
 x = tf.ones((10,1), dtype=tf.int32)
 print(x.numpy())
 
-steps = 1000
+steps = 1
 mean_time = []
 for i in range(steps):
     t0 = time.time()

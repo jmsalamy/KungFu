@@ -249,7 +249,6 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	for _, g := range graphs {
 		// reduce graph
 		if g.IsSelfLoop(sess.rank) {
-			// TODO: modify to adjust for general backup servers.
 			prevs := g.Prevs(sess.rank)
 			if err := par(prevs, recvOnto); err != nil {
 				return err

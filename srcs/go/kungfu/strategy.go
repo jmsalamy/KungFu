@@ -56,7 +56,14 @@ func CreatePrimaryBackupStrategies(peers plan.PeerList) []strategy {
 
 func CreatePrimaryBackupStrategiesTesting(peers plan.PeerList) []strategy {
 	// method for inserting custom strategies for testing purposes.
-	return createStarPrimaryBackupStrategies(peers)
+	config := map[int]bool{
+		0: true,
+		1: true,
+		2: false,
+		3: true,
+		4: true,
+	}
+	return createRingStrategiesFromConfig(peers, config)
 }
 
 func createBinaryTreeStarStrategies(peers plan.PeerList) []strategy {
@@ -83,6 +90,32 @@ func createRingStrategies(peers plan.PeerList) []strategy {
 	var ss []strategy
 	for r := 0; r < k; r++ {
 		reduceGraph, bcastGraph := plan.GenCircularGraphPair(k, r)
+		ss = append(ss, strategy{
+			reduceGraph: reduceGraph,
+			bcastGraph:  bcastGraph,
+		})
+	}
+	return ss
+}
+
+func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]bool) []strategy {
+	k := len(peers)
+	var ss []strategy
+
+	var primaries []int
+
+	for i := 0; i < k; i++ {
+		if config[i] {
+			primaries = append(primaries, i)
+		}
+	}
+	numActive := len(primaries)
+
+	for r := 0; r < k; r++ {
+		reduceEdgeToRemove, bcastEdgeToRemove := r, (r+(numActive-1))%numActive
+		reduceGraph, bcastGraph := plan.GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove, primaries)
+		reduceGraph.Debug()
+		bcastGraph.Debug()
 		ss = append(ss, strategy{
 			reduceGraph: reduceGraph,
 			bcastGraph:  bcastGraph,

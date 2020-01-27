@@ -122,6 +122,31 @@ func GenCircularGraphPair(k, r int) (*Graph, *Graph) {
 	return g, b
 }
 
+func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int, primaries []int) (*Graph, *Graph) {
+	r := NewGraph(k)
+	b := NewGraph(k)
+	for i := 0; i < k; i++ {
+		r.AddEdge(i, i)
+	}
+
+	for i := 0; i < len(primaries); i++ {
+		fromNode, toNode := primaries[i], primaries[(i+1)%len(primaries)]
+		if i != reduceEdgeToRemove {
+			r.AddEdge(fromNode, toNode)
+
+		}
+		if i != bcastEdgeToRemove {
+			b.AddEdge(fromNode, toNode)
+		}
+	}
+
+	// add final bcastGraph edge for pushing values to the disconnected worker
+
+	// start with a full ring and remove the appropriate 1 edge to create a rooted ring topology for reduce
+	// and bcast graph
+	return r, b
+}
+
 // GenBinaryTreeStarPrimaryBackupGraphPair generates primary-backup strategy based off of BinaryTreeStar Default strategy
 func GenBinaryTreeStarPrimaryBackupGraphPair(peers PeerList, numPrimaries, numBackups int) (*Graph, *Graph) {
 	// Generate default broadcast graph for BinaryTreeStar

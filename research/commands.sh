@@ -105,10 +105,11 @@ kungfu-run -np 16 \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
 
 
-kungfu-run -np 8 \
--H 10.128.0.14:4,10.128.0.15:4 \
+
+kungfu-run -np 16 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
--logdir logs/debug \
+-logdir logs/debug/ \
 -strategy PRIMARY_BACKUP_TESTING \
 python examples/tf2_mnist_keras.py
 
@@ -132,6 +133,8 @@ git pull
 
 
 cd src/KungFu
+
+
 yes | pip uninstall KungFu
 git pull 
 pip wheel -vvv --no-index ./

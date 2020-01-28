@@ -30,9 +30,11 @@ type session struct {
 	localRank     int
 	router        *rch.Router
 	backupEnabled bool
+	delayConfig   []Delay
+	iterationIdx  int
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, config []Delay, iter int) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -44,6 +46,7 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 	if strategy == kb.Auto {
 		strategy = autoSelect(pl)
 	}
+
 	sess := &session{
 		strategies:    partitionStrategies[strategy](pl),
 		self:          self,
@@ -52,6 +55,8 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 		localRank:     localRank,
 		router:        router,
 		backupEnabled: backup,
+		delayConfig:   config,
+		iterationIdx:  iter,
 	}
 	return sess, true
 }
@@ -128,6 +133,9 @@ func (sess *session) BytesConsensus(bs []byte, name string) (bool, error) {
 }
 
 func (sess *session) AllReduce(w Workspace) error {
+	if sess.backupEnabled {
+		sess.iterationIdx++
+	}
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies)
 }
 
@@ -251,7 +259,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	delayOn := true
 
 	// TODO: parse Delay from file and update it every iteration here
-	delay := parseIterationDelayFromFile()
+	delay := sess.delayConfig[sess.iterationIdx]
 
 	for _, g := range graphs {
 		// reduce graph
@@ -344,9 +352,4 @@ func boolToInt8(v bool) int8 {
 		return 1
 	}
 	return 0
-}
-
-func parseIterationDelayFromFile() Delay {
-	// TODO parse Delay from input file
-	return Delay{1, 2, 550}
 }

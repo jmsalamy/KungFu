@@ -34,20 +34,20 @@ def show_duration(duration):
 x = tf.ones((10,1), dtype=tf.int32)
 print(x.numpy())
 
-steps = 1
+steps = 5
 mean_time = []
 for i in range(steps):
     t0 = time.time()
     v = all_reduce(x)
-    print('step %d, took %s' %
+    print('all reduce step %d, took %s' %
             (i, show_duration(time.time() - t0)))
 
-    t0 = time.time()
+    t1 = time.time()
     keep = reshape_strategy(debug=False)
-    iteration_time = time.time() - t0
+    iteration_time = time.time() - t1
     print('reshape took %s' %
             (show_duration(iteration_time)))
     mean_time.append(iteration_time)
-    if not keep:
-        break
+    # if not keep:
+    #     break
 print(np.mean(mean_time))

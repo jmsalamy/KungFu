@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	kb "github.com/lsds/KungFu/srcs/go/kungfubase"
 	"github.com/lsds/KungFu/srcs/go/log"
@@ -29,9 +30,10 @@ type session struct {
 	localRank     int
 	router        *rch.Router
 	backupEnabled bool
+	delay         Delay
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, delay Delay) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -51,6 +53,7 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 		localRank:     localRank,
 		router:        router,
 		backupEnabled: backup,
+		delay:         delay,
 	}
 	return sess, true
 }
@@ -246,12 +249,23 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 		}
 	}
 
+	// delay the appropriate worker by delay.TimeDelay ms
+	delayOn := true
+	delay := sess.delay
+
 	for _, g := range graphs {
 		// reduce graph
 		if g.IsSelfLoop(sess.rank) {
 			prevs := g.Prevs(sess.rank)
 			if err := par(prevs, recvOnto); err != nil {
 				return err
+			}
+			// add delay here right before the sess.rank sends its reduced data to next nodes
+			if delayOn {
+				if sess.rank == delay.NodeID {
+					log.Debugf("delaying this worker here ----------------")
+					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
+				}
 			}
 			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
 				return err

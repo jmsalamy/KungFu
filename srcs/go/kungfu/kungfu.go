@@ -146,8 +146,10 @@ func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy, backup bool, delayFor
 func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
 
 	// TODO: insert delay into static training according to the simulated data
+	// first delay is initialized to 0, then subsequent ones are read from file every iteration and delayed
+	// in session.go
+	delayStaticStrategyTraining := Delay{0, 0, 0}
 
-	delayStaticStrategyTraining := Delay{1, 2, 500}
 	if kf.updated {
 		log.Debugf("ignore update")
 		return true

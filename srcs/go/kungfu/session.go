@@ -251,7 +251,9 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 
 	// delay the appropriate worker by delay.TimeDelay ms
 	delayOn := true
-	delay := sess.delay
+
+	// TODO: parse Delay from file and update it every iteration here
+	delay := parseIterationDelayFromFile()
 
 	for _, g := range graphs {
 		// reduce graph
@@ -344,4 +346,8 @@ func boolToInt8(v bool) int8 {
 		return 1
 	}
 	return 0
+}
+
+func parseIterationDelayFromFile() Delay {
+	return Delay{1, 2, 550}
 }

@@ -43,7 +43,7 @@ for i in range(steps):
             (i, show_duration(time.time() - t0)))
 
     t1 = time.time()
-    keep = reshape_strategy(debug=False)
+    # keep = reshape_strategy(debug=False)
     iteration_time = time.time() - t1
     print('reshape took %s' %
             (show_duration(iteration_time)))

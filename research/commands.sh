@@ -157,9 +157,9 @@ python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=..
 iperf -s 
 
 #client side 9
-iperf -c <IP> -u -b 
-iperf -c 10.128.0.14 -t 90 & 
-wait
+# iperf -c <IP> -u -b 
+# iperf -c 10.128.0.14 -t 90 & 
+# wait
 
 # imagenet learning rate fix (test)
 kungfu-run -np 4 \

@@ -122,15 +122,15 @@ func (kf *Kungfu) Update() bool {
 	return kf.updateTo(kf.currentPeers)
 }
 
-func (kf *Kungfu) UpdateStrategy(newStrategy []strategy, backup bool, delayForTrainingWithStrategy Delay) bool {
+func (kf *Kungfu) UpdateStrategy(newStrategy []strategy, backup bool) bool {
 	kf.Lock()
 	defer kf.Unlock()
-	return kf.UpdateStrategyTo(newStrategy, backup, delayForTrainingWithStrategy)
+	return kf.UpdateStrategyTo(newStrategy, backup)
 }
 
-func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy, backup bool, delayForTrainingWithStrategy Delay) bool {
+func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy, backup bool) bool {
 	// TODO : add check to bypass method if unnecessary
-	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, backup, delayForTrainingWithStrategy)
+	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, backup)
 	sess.strategies = newStrategy
 	if !exist {
 		return false
@@ -145,18 +145,13 @@ func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy, backup bool, delayFor
 
 func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
 
-	// TODO: insert delay into static training according to the simulated data
-	// first delay is initialized to 0, then subsequent ones are read from file every iteration and delayed
-	// in session.go
-	delayStaticStrategyTraining := Delay{0, 0, 0}
-
 	if kf.updated {
 		log.Debugf("ignore update")
 		return true
 	}
 	log.Debugf("Kungfu::updateTo(%s), %d peers", pl, len(pl))
 	kf.router.ResetConnections(pl)
-	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, false, delayStaticStrategyTraining)
+	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, false)
 	if !exist {
 		return false
 	}
@@ -251,31 +246,24 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 	return changed, keep, nil
 }
 
-// TODO read delay file and generate delay for each iteration
-// func (kf *Kungfu) generateDelayForIteration() {
-
-// }
-
-func (kf *Kungfu) nextStrategy() ([]strategy, bool, Delay) {
+func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	// generate custom strategies here for experiments
 	// next, modify this method to work with a specific monitored metric
 	delay := Delay{1, 3, 500}
 	config := GenerateConfigFromDelay(len(kf.currentPeers), delay)
 	strategy := createRingStrategiesFromConfig(kf.currentPeers, config)
 	backup := true
-	// set the delay to 0 for the actual run
-	delayForTrainingWithStrategy := Delay{0, 0, 0}
-	return strategy, backup, delayForTrainingWithStrategy
+	return strategy, backup
 
 }
 
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy() (bool, error) {
-	newStrategy, backup, delayForTrainingWithStrategy := kf.nextStrategy()
+	newStrategy, backup := kf.nextStrategy()
 	strategyChanged := kf.proposeStrategy(newStrategy)
 
 	if strategyChanged {
-		kf.UpdateStrategy(newStrategy, backup, delayForTrainingWithStrategy)
+		kf.UpdateStrategy(newStrategy, backup)
 	}
 	kf.strategyIdx++
 	return strategyChanged, nil

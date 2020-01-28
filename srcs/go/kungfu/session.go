@@ -30,10 +30,9 @@ type session struct {
 	localRank     int
 	router        *rch.Router
 	backupEnabled bool
-	delay         Delay
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, delay Delay) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -53,7 +52,6 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 		localRank:     localRank,
 		router:        router,
 		backupEnabled: backup,
-		delay:         delay,
 	}
 	return sess, true
 }
@@ -265,7 +263,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if delayOn {
 				if sess.rank == delay.NodeID {
-					log.Debugf("delaying this worker here ----------------")
+					log.Debugf("delaying this worker here -----------")
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}
@@ -349,5 +347,6 @@ func boolToInt8(v bool) int8 {
 }
 
 func parseIterationDelayFromFile() Delay {
+	// TODO parse Delay from input file
 	return Delay{1, 2, 550}
 }

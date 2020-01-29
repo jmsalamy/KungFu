@@ -32,6 +32,7 @@ type session struct {
 	backupEnabled bool
 	delayConfig   []Delay
 	iterationIdx  int
+	delayOn       bool
 }
 
 func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, config []Delay, iter int) (*session, bool) {
@@ -46,6 +47,8 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 	if strategy == kb.Auto {
 		strategy = autoSelect(pl)
 	}
+	// keep delayOn by default (and turn it on/off selectively thereafter in AllReduce and Barrier)
+	delayOn := true
 
 	sess := &session{
 		strategies:    partitionStrategies[strategy](pl),
@@ -57,6 +60,7 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 		backupEnabled: backup,
 		delayConfig:   config,
 		iterationIdx:  iter,
+		delayOn:       delayOn,
 	}
 	return sess, true
 }
@@ -87,6 +91,8 @@ func (sess *session) barrier() error {
 		OP:      kb.SUM,
 		Name:    "kungfu::barrier", // TODO: use tag
 	}
+	// turn off delay for the barrier op (delay should only happen during an AllReduce op)
+	sess.delayOn = false
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies)
 }
 
@@ -133,9 +139,11 @@ func (sess *session) BytesConsensus(bs []byte, name string) (bool, error) {
 }
 
 func (sess *session) AllReduce(w Workspace) error {
-	if sess.backupEnabled {
+	if !sess.backupEnabled {
 		sess.iterationIdx++
 	}
+	// ensure delay is on when calling AllReduce
+	sess.delayOn = true
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies)
 }
 
@@ -256,10 +264,9 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	}
 
 	// delay the appropriate worker by delay.TimeDelay ms
-	delayOn := true
 
 	// TODO: parse Delay from file and update it every iteration here
-	delay := sess.delayConfig[sess.iterationIdx]
+	delay := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 
 	for _, g := range graphs {
 		// reduce graph
@@ -269,9 +276,13 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 				return err
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
-			if delayOn {
+			if sess.delayOn {
 				if sess.rank == delay.NodeID {
-					log.Debugf("delaying this worker here -----------")
+					// log.Debugf("delaying worker --------------------")
+					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
+					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
+					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
+					// log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}

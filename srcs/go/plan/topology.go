@@ -186,7 +186,5 @@ func GenBinaryTreeStarPrimaryBackupGraphPair(peers PeerList, numPrimaries, numBa
 	for i := 0; i < k; i++ {
 		reduceGraphReversed.AddEdge(i, i)
 	}
-	reduceGraphReversed.Debug()
-	b.Debug()
 	return reduceGraphReversed, b
 }

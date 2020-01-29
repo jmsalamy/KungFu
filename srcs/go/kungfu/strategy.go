@@ -21,8 +21,6 @@ var partitionStrategies = map[kb.Strategy]partitionStrategy{
 func simpleSingleGraphStrategy(bcastGraph *plan.Graph) []strategy {
 	r := plan.GenDefaultReduceGraph(bcastGraph)
 	b := bcastGraph
-	r.Debug()
-	b.Debug()
 
 	return []strategy{
 		{
@@ -118,8 +116,6 @@ func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]bool) []
 	for r := 0; r < k; r++ {
 		reduceEdgeToRemove, bcastEdgeToRemove := r, (r+(numActive-1))%numActive
 		reduceGraph, bcastGraph := plan.GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove, primaries, backups)
-		reduceGraph.Debug()
-		bcastGraph.Debug()
 		ss = append(ss, strategy{
 			reduceGraph: reduceGraph,
 			bcastGraph:  bcastGraph,

@@ -114,8 +114,10 @@ func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]bool) []
 	numActive := len(primaries)
 
 	for r := 0; r < k; r++ {
-		reduceEdgeToRemove, bcastEdgeToRemove := r, (r+(numActive-1))%numActive
+		reduceEdgeToRemove, bcastEdgeToRemove := r%numActive, (r+(numActive-1))%numActive
 		reduceGraph, bcastGraph := plan.GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove, primaries, backups)
+		reduceGraph.Debug()
+		bcastGraph.Debug()
 		ss = append(ss, strategy{
 			reduceGraph: reduceGraph,
 			bcastGraph:  bcastGraph,
@@ -164,5 +166,6 @@ func GenerateConfigFromDelay(k int, delay Delay) map[int]bool {
 
 		}
 	}
+
 	return config
 }

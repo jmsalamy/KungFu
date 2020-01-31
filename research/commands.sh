@@ -172,7 +172,7 @@ iperf -s
 # imagenet learning rate fix (test)
 kungfu-run -np 4 \
 -logdir logs/debug \
-python official/vision/image_classification/kungfu_resnet_main.py --model_dir=./saved-models/debug --train_epochs=32 --train_steps=4 --batch_size=128 --synth=True --skip_eval=True
+python official/vision/image_classification/kungfu_resnet_main.py --model_dir=./saved-models/debug --train_epochs=2 --train_steps=4 --batch_size=128 --synth=True --skip_eval=True
 
 cd resnet-test-kungfu/src/
 git pull

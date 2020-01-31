@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import time
 import tensorflow as tf
 from kungfu import current_cluster_size, current_rank
 from kungfu.tensorflow.ops import reshape_strategy
@@ -78,6 +79,18 @@ def build_optimizer():
     return opt
 
 
+def show_duration(duration):
+    if duration < 1:
+        return '%.2fms' % (duration * 1e3)
+    if duration < 60:
+        return '%.2fs' % duration
+    sec = int(duration)
+    mm, ss = sec / 60, sec % 60
+    if duration < 3600:
+        return '%dm%ds' % (mm, ss)
+    return '%dh%dm%ds' % (mm / 60, mm % 60, ss)
+
+
 @tf.function
 def training_step(mnist_model, opt, images, labels, first_batch):
     with tf.GradientTape() as tape:
@@ -107,8 +120,8 @@ if __name__ == "__main__":
     val_acc_metric = tf.metrics.SparseCategoricalAccuracy()
     best_val_acc = 0
 
-    time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    log_dir = f"tensorboard-logs/{args.name}/{time}"
+    time_log = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = f"tensorboard-logs/{args.name}/{time_log}"
     summary_writer = tf.summary.create_file_writer(
         log_dir, flush_millis=10000)
 
@@ -116,12 +129,20 @@ if __name__ == "__main__":
     with summary_writer.as_default():
         for epoch in range(NUM_EPOCHS):
             print('Start of epoch %d' % (epoch+1,))
+            for batch, (images, labels) in enumerate(train_dataset.take(NUM_STEPS)):
 
-            for batch, (images, labels) in enumerate(
-                    train_dataset.take(NUM_STEPS)):
+
+                # reshape strategy before apply_gradients (and therefore AllReduce is called in KungFu)
+                keep = reshape_strategy()
+                if not keep:
+                    print("RESHAPE STRATEGY DIDN'T WORK!!!!!!!!!!!!!!")
+
+                t0 = time.time()
                 probs, loss_value = training_step(
                     mnist_model, opt, images, labels, batch == 0)
 
+                print('training step %d, took %s' %
+                      (step, show_duration(time.time() - t0)))
                 step += 1
                 # print(f"batch number here is {batch}")
                 # update training metric
@@ -129,20 +150,19 @@ if __name__ == "__main__":
 
                 # Log loss metric every 10th step only on the 0th worker
                 if step % 3 == 0 and current_rank() == 0:
-                    print('Training step #%d\tLoss: %.6f' %
-                          (step, loss_value))
-                    print('Training acc : %s' %
-                          float(train_acc_metric.result()))
+                    # print('Training step #%d\tLoss: %.6f' %
+                    #       (step, loss_value))
+                    # print('Training acc : %s' %
+                    #       float(train_acc_metric.result()))
                     tf.summary.scalar(
                         'training-loss', loss_value, step=step)
                     tf.summary.scalar('training-accuracy',
                                       float(train_acc_metric.result()), step=step)
                     summary_writer.flush()
-                    
 
             # Display metric at the end of each epoch
             train_acc = train_acc_metric.result()
-            print('Training acc over epoch: %s' % (float(train_acc),))
+            # print('Training acc over epoch: %s' % (float(train_acc),))
             # Reset training metric
             train_acc_metric.reset_states()
 
@@ -157,7 +177,7 @@ if __name__ == "__main__":
             if current_rank() == 0:
                 tf.summary.scalar('val_accuracy', float(val_acc), step=step)
                 summary_writer.flush()
-            
+
             best_val_acc = max(val_acc, best_val_acc)
             val_acc_metric.reset_states()
             print(

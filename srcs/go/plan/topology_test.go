@@ -39,7 +39,6 @@ func isValidGraph(g *Graph) bool {
 
 func isValidTreeWithRoot(g *Graph, root int) bool {
 	if !isValidGraph(g) {
-		g.Debug()
 		return false
 	}
 	k := len(g.Nodes)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	kb "github.com/lsds/KungFu/srcs/go/kungfubase"
 	"github.com/lsds/KungFu/srcs/go/log"
@@ -29,9 +30,12 @@ type session struct {
 	localRank     int
 	router        *rch.Router
 	backupEnabled bool
+	delayConfig   []Delay
+	iterationIdx  int
+	delayOn       bool
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, config []Delay, iter int) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -43,6 +47,9 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 	if strategy == kb.Auto {
 		strategy = autoSelect(pl)
 	}
+	// keep delayOn by default (and turn it on/off selectively thereafter in AllReduce and Barrier)
+	delayOn := true
+
 	sess := &session{
 		strategies:    partitionStrategies[strategy](pl),
 		self:          self,
@@ -51,6 +58,9 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 		localRank:     localRank,
 		router:        router,
 		backupEnabled: backup,
+		delayConfig:   config,
+		iterationIdx:  iter,
+		delayOn:       delayOn,
 	}
 	return sess, true
 }
@@ -81,6 +91,8 @@ func (sess *session) barrier() error {
 		OP:      kb.SUM,
 		Name:    "kungfu::barrier", // TODO: use tag
 	}
+	// turn off delay for the barrier op (delay should only happen during an AllReduce op)
+	sess.delayOn = false
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies)
 }
 
@@ -127,6 +139,11 @@ func (sess *session) BytesConsensus(bs []byte, name string) (bool, error) {
 }
 
 func (sess *session) AllReduce(w Workspace) error {
+	if !sess.backupEnabled {
+		sess.iterationIdx++
+	}
+	// ensure delay is on when calling AllReduce
+	sess.delayOn = true
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies)
 }
 
@@ -246,12 +263,28 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 		}
 	}
 
+	// delay the appropriate worker by delay.TimeDelay ms
+
+	// TODO: parse Delay from file and update it every iteration here
+	delay := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
+
 	for _, g := range graphs {
 		// reduce graph
 		if g.IsSelfLoop(sess.rank) {
 			prevs := g.Prevs(sess.rank)
 			if err := par(prevs, recvOnto); err != nil {
 				return err
+			}
+			// add delay here right before the sess.rank sends its reduced data to next nodes
+			if sess.delayOn {
+				if sess.rank == delay.NodeID {
+					// log.Debugf("delaying worker --------------------")
+					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
+					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
+					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
+					// log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
+					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
+				}
 			}
 			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
 				return err

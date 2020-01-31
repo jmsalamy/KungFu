@@ -3,6 +3,9 @@ package kungfu
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"strconv"
+	"strings"
 	"sync"
 
 	kb "github.com/lsds/KungFu/srcs/go/kungfubase"
@@ -31,11 +34,12 @@ type Kungfu struct {
 	server rch.Server
 
 	// dynamic
-	currentSession *session
-	currentPeers   plan.PeerList
-	checkpoint     string
-	updated        bool
-	strategyIdx    int
+	currentSession   *session
+	currentPeers     plan.PeerList
+	checkpoint       string
+	updated          bool
+	currentIteration int
+	delayConfig      []Delay
 }
 
 func New() (*Kungfu, error) {
@@ -49,19 +53,22 @@ func New() (*Kungfu, error) {
 func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 	router := rch.NewRouter(config.Self)
 	server := rch.NewServer(router)
+	// initialize config at the beginning of a new session
+	delayConfig := parseDelayConfigFile()
 	return &Kungfu{
-		parent:       config.Parent,
-		parents:      config.Parents,
-		currentPeers: config.InitPeers,
-		self:         config.Self,
-		hostList:     config.HostList,
-		portRange:    config.PortRange,
-		strategy:     config.Strategy,
-		checkpoint:   config.InitCheckpoint,
-		single:       config.Single,
-		router:       router,
-		server:       server,
-		strategyIdx:  1,
+		parent:           config.Parent,
+		parents:          config.Parents,
+		currentPeers:     config.InitPeers,
+		self:             config.Self,
+		hostList:         config.HostList,
+		portRange:        config.PortRange,
+		strategy:         config.Strategy,
+		checkpoint:       config.InitCheckpoint,
+		single:           config.Single,
+		router:           router,
+		server:           server,
+		currentIteration: 0,
+		delayConfig:      delayConfig,
 	}, nil
 }
 
@@ -130,7 +137,7 @@ func (kf *Kungfu) UpdateStrategy(newStrategy []strategy, backup bool) bool {
 
 func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy, backup bool) bool {
 	// TODO : add check to bypass method if unnecessary
-	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, backup)
+	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, backup, kf.delayConfig, kf.currentIteration)
 	sess.strategies = newStrategy
 	if !exist {
 		return false
@@ -144,13 +151,16 @@ func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy, backup bool) bool {
 }
 
 func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
+
 	if kf.updated {
 		log.Debugf("ignore update")
 		return true
 	}
 	log.Debugf("Kungfu::updateTo(%s), %d peers", pl, len(pl))
 	kf.router.ResetConnections(pl)
-	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, false)
+
+	backup := false
+	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, backup, kf.delayConfig, kf.currentIteration)
 	if !exist {
 		return false
 	}
@@ -248,7 +258,7 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	// generate custom strategies here for experiments
 	// next, modify this method to work with a specific monitored metric
-	delay := Delay{1, 3, 100}
+	delay := kf.parseIterationDelay()
 	config := GenerateConfigFromDelay(len(kf.currentPeers), delay)
 	strategy := createRingStrategiesFromConfig(kf.currentPeers, config)
 	backup := true
@@ -264,6 +274,47 @@ func (kf *Kungfu) ReshapeStrategy() (bool, error) {
 	if strategyChanged {
 		kf.UpdateStrategy(newStrategy, backup)
 	}
-	kf.strategyIdx++
+	kf.currentIteration++
 	return strategyChanged, nil
+}
+
+func (kf *Kungfu) parseIterationDelay() Delay {
+	// TODO track current iteration and read from that to Delay
+	return kf.delayConfig[kf.currentIteration%len(kf.delayConfig)]
+}
+
+func parseDelayConfigFile() []Delay {
+	// pwd, _ := os.Getwd()
+	data, err := ioutil.ReadFile("/home/ghobadi_mit_edu/src/KungFu/config.txt")
+	if err != nil {
+		log.Errorf("File reading error", err)
+		return nil
+	}
+
+	config := string(data)
+	configNewLineSeparated := strings.Split(config, "\n")
+
+	// convert byte array to []Delay
+	var delayArr []Delay
+	for _, row := range configNewLineSeparated {
+		args := strings.Split(row, ",")
+		delay := parseDelayFromRow(args)
+		delayArr = append(delayArr, delay)
+
+	}
+
+	return delayArr
+}
+
+func parseDelayFromRow(args []string) Delay {
+	var delayArgs []int
+	for _, i := range args {
+		j, err := strconv.Atoi(i)
+		if err != nil {
+			return Delay{0, 0, 0}
+		}
+		delayArgs = append(delayArgs, j)
+	}
+	delay := Delay{delayArgs[0], delayArgs[1], delayArgs[2]}
+	return delay
 }

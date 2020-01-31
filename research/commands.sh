@@ -38,7 +38,7 @@ kungfu-run -np 80 \
 -nic eth0 \
 -logdir logs/ \
 -strategy PRIMARY_BACKUP_TESTING \
-python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/debug --train_epochs=2 --batch_size=128 --train_steps=500
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/debug --train_epochs=2 --batch_size=128 --train_steps=300
 
 
 # final run 20 servers command
@@ -105,13 +105,16 @@ kungfu-run -np 16 \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
 
 
-
+# ------------------------
+cd ../../resnet-test-kungfu/src
 kungfu-run -np 16 \
 -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
--logdir logs/debug/ \
--strategy PRIMARY_BACKUP_TESTING \
-python examples/tf2_mnist_keras.py
+-logdir logs/16_straggler_on/ \
+-strategy RING \
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_straggler_on --train_epochs=90 --batch_size=128
+
+
 
 
 kungfu-run -np 40 \
@@ -132,11 +135,16 @@ git pull
 
 
 
+
+
 cd src/KungFu
 
-
-yes | pip uninstall KungFu
+cd resnet-test-kungfu/
 git pull 
+cd ../src/KungFu
+git checkout .
+git pull 
+yes | pip uninstall KungFu
 pip wheel -vvv --no-index ./
 pip install --no-index ./
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run

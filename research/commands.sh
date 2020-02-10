@@ -38,7 +38,7 @@ kungfu-run -np 80 \
 -nic eth0 \
 -logdir logs/ \
 -strategy PRIMARY_BACKUP_TESTING \
-python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/debug --train_epochs=2 --batch_size=128 --train_steps=500
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/debug --train_epochs=2 --batch_size=128 --train_steps=300
 
 
 # final run 20 servers command
@@ -116,7 +116,6 @@ git pull
 
 
 
-cd src/KungFu
 
 
 yes | pip uninstall KungFu
@@ -147,7 +146,7 @@ iperf -s
 # imagenet learning rate fix (test)
 kungfu-run -np 4 \
 -logdir logs/debug \
-python official/vision/image_classification/kungfu_resnet_main.py --model_dir=./saved-models/debug --train_epochs=32 --train_steps=4 --batch_size=128 --synth=True --skip_eval=True
+python official/vision/image_classification/kungfu_resnet_main.py --model_dir=./saved-models/debug --train_epochs=2 --train_steps=4 --batch_size=128 --synth=True --skip_eval=True
 
 cd resnet-test-kungfu/src/
 git pull

@@ -77,7 +77,7 @@ python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=..
 
 # ----------------------------
 # Experiment 8 - Measuring overhead of switching strategies back and forth during training
-# Run with 1, 2, 3, 4, 5 servers
+# Run with 4 servers
 
 
 # final run n machines 
@@ -86,41 +86,25 @@ kungfu-run -np 16 \
 -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
 -logdir logs/debug/ \
--strategy STAR \
+-strategy RING \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
 
 
-kungfu-run -np 8 \
--H 10.128.0.14:4,10.128.0.15:4 \
--nic eth0 \
--logdir logs/debug/ \
--strategy BINARY_TREE_STAR \
-python examples/tf2_mnist_keras.py
-
+#Experiment 9 - train ResNet50 with ImageNet with stragglers enabled.
+# test run 
 
 kungfu-run -np 16 \
 -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
+-logdir logs/ \
+-strategy RING \
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_straggler_on_no_reshape --train_epochs=90 --batch_size=128
+
+
+kungfu-run -np 4 \
 -logdir logs/debug/ \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
-
-
-
-kungfu-run -np 16 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
--nic eth0 \
--logdir logs/debug/ \
--strategy PRIMARY_BACKUP_TESTING \
-python examples/tf2_mnist_keras.py
-
-
-kungfu-run -np 40 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4,10.128.0.19:4,10.128.0.20:4,10.128.0.21:4,10.128.0.22:4,10.128.0.23:4 \
--nic eth0 \
--logdir logs/debug/ \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=100
-
-
+-strategy RING \
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_straggler_on_no_reshape_debug --train_epochs=2 --batch_size=128 --train_steps=500
 
 
 # --------------------------------------
@@ -136,7 +120,6 @@ cd src/KungFu
 
 
 yes | pip uninstall KungFu
-git pull 
 pip wheel -vvv --no-index ./
 pip install --no-index ./
 GOBIN=$(pwd)/bin go install -v ./srcs/go/cmd/kungfu-run

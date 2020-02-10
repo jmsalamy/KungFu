@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"path"
@@ -131,4 +132,19 @@ func ProgName() string {
 		return path.Base(os.Args[0])
 	}
 	return ""
+}
+
+func WriteToFile(filename string, eventType string, time int64) error {
+
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	data := eventType + " | " + fmt.Sprintf("%d\n", time)
+	_, err = io.WriteString(file, data)
+	if err != nil {
+		return err
+	}
+	return file.Sync()
 }

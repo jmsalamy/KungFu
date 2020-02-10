@@ -3,6 +3,7 @@ package kungfu
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -93,7 +94,7 @@ func (sess *session) barrier() error {
 	}
 	// turn off delay for the barrier op (delay should only happen during an AllReduce op)
 	sess.delayOn = false
-	return sess.runStrategies(w, plan.EvenPartition, sess.strategies)
+	return sess.runStrategies(w, plan.EvenPartition, sess.strategies, false)
 }
 
 func (sess *session) Consensus(w Workspace) error {
@@ -142,9 +143,15 @@ func (sess *session) AllReduce(w Workspace) error {
 	if !sess.backupEnabled {
 		sess.iterationIdx++
 	}
+	// var isAllReduce bool
+	// if !isDirectCall {
+	// 	isAllReduce = false
+	// } else {
+	// 	isAllReduce = true
+	// }
 	// ensure delay is on when calling AllReduce
 	sess.delayOn = true
-	return sess.runStrategies(w, plan.EvenPartition, sess.strategies)
+	return sess.runStrategies(w, plan.EvenPartition, sess.strategies, true)
 }
 
 func (sess *session) Reduce(w Workspace) error {
@@ -266,6 +273,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	// delay the appropriate worker by delay.TimeDelay ms
 
 	// TODO: parse Delay from file and update it every iteration here
+	sess.delayOn = false
 	delay := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 
 	for _, g := range graphs {
@@ -278,7 +286,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn {
 				if sess.rank == delay.NodeID {
-					// log.Debugf("delaying worker --------------------")
+					// log.Debugf("delaying worker --------------------	")
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
 					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
@@ -321,7 +329,14 @@ func ceilDiv(a, b int) int {
 	return a/b + 1
 }
 
-func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []strategy) error {
+func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []strategy, isAllReduce bool) error {
+	f := "worker-log-" + strconv.Itoa(sess.rank)
+	if isAllReduce {
+		t0 := time.Now().UnixNano() / 1000000
+		eventBegin := "AllReduce begin"
+		utils.WriteToFile(f, eventBegin, t0)
+	}
+
 	k := ceilDiv(w.RecvBuf.Count*w.RecvBuf.Type.Size(), chunkSize)
 	errs := make([]error, k)
 	var wg sync.WaitGroup
@@ -333,7 +348,15 @@ func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []st
 		}(i, w, strategies[i%len(strategies)])
 	}
 	wg.Wait()
+
+	if isAllReduce {
+		t1 := time.Now().UnixNano() / 1000000
+		eventEnd := "AllReduce end"
+		utils.WriteToFile(f, eventEnd, t1)
+
+	}
 	return mergeErrors(errs, "runStrategies")
+
 }
 
 var (

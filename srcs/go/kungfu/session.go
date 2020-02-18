@@ -271,7 +271,6 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	}
 
 	// delay the appropriate worker by delay.TimeDelay ms
-	sess.delayOn = false
 	// TODO: parse Delay from file and update it every iteration here
 	sess.delayOn = false
 	delay := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]

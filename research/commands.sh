@@ -90,6 +90,22 @@ kungfu-run -np 16 \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
 
 
+kungfu-run -np 8 \
+-H 10.128.0.14:4,10.128.0.15:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy RING \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+
+
+kungfu-run -np 12 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy RING \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+
+
 #Experiment 9 - train ResNet50 with ImageNet with stragglers enabled.
 # test run 
 
@@ -110,10 +126,12 @@ kungfu-run -np 16 \
 python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_straggler_on_no_reshape --train_epochs=90 --batch_size=128
 
 
-kungfu-run -np 4 \
--logdir logs/debug/ \
+kungfu-run -np 16 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
+-nic eth0 \
+-logdir logs/16_baseline_active_backup/ \
 -strategy RING \
-python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_straggler_on_no_reshape_debug --train_epochs=2 --batch_size=128 --train_steps=500
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_baseline_active_backup --train_epochs=90 --batch_size=128
 
 
 # --------------------------------------
@@ -128,9 +146,19 @@ cd src/KungFu
 
 cd resnet-test-kungfu/
 git pull 
+
 cd ../src/KungFu
-git checkout .
 git pull 
+
+# ---------------------------------------
+kungfu-run -np 8 \
+-H 10.128.0.14:4,10.128.0.15:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy RING \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+
+
 yes | pip uninstall KungFu
 pip wheel -vvv --no-index ./
 pip install --no-index ./
@@ -148,7 +176,7 @@ python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=..
 
 
 
-# server side
+# server side       
 iperf -s 
 
 #client side 9

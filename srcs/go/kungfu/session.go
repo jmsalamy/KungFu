@@ -329,12 +329,12 @@ func ceilDiv(a, b int) int {
 }
 
 func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []strategy, isAllReduce bool) error {
-	f := "worker-log-" + strconv.Itoa(sess.rank)
-	if isAllReduce {
-		t0 := time.Now().UnixNano() / 1000000
-		eventBegin := "AllReduce begin"
-		utils.WriteToFile(f, eventBegin, t0)
-	}
+	// f := "worker-log-" + strconv.Itoa(sess.rank)
+	// if isAllReduce {
+	// 	t0 := time.Now().UnixNano() / 1000000
+	// 	eventBegin := "AllReduce begin"
+	// 	utils.WriteToFile(f, eventBegin, t0)
+	// }
 
 	k := ceilDiv(w.RecvBuf.Count*w.RecvBuf.Type.Size(), chunkSize)
 	errs := make([]error, k)
@@ -348,12 +348,12 @@ func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []st
 	}
 	wg.Wait()
 
-	if isAllReduce {
-		t1 := time.Now().UnixNano() / 1000000
-		eventEnd := "AllReduce end"
-		utils.WriteToFile(f, eventEnd, t1)
+	// if isAllReduce {
+	// 	t1 := time.Now().UnixNano() / 1000000
+	// 	eventEnd := "AllReduce end"
+	// 	utils.WriteToFile(f, eventEnd, t1)
 
-	}
+	// }
 	return mergeErrors(errs, "runStrategies")
 
 }

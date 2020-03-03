@@ -54,12 +54,12 @@ func CreatePrimaryBackupStrategies(peers plan.PeerList) []strategy {
 
 func CreatePrimaryBackupStrategiesTesting(peers plan.PeerList) []strategy {
 	// method for inserting custom strategies for testing purposes.
-	config := map[int]bool{
-		0: true,
-		1: true,
-		2: true,
-		3: false,
-		4: true,
+	config := map[int]int{
+		0: 0,
+		1: 0,
+		2: 0,
+		3: 2,
+		4: 1,
 	}
 	return createRingStrategiesFromConfig(peers, config)
 }
@@ -96,22 +96,26 @@ func createRingStrategies(peers plan.PeerList) []strategy {
 	return ss
 }
 
-func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]bool) []strategy {
+func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]int) []strategy {
 	k := len(peers)
 	var ss []strategy
 
 	var primaries []int
 	var stragglers []int
-	activeBackups := []int{len(peers) - 1}
+	var activeBackups []int
 
 	for i := 0; i < k; i++ {
-		if config[i] {
+		if config[i] == 0 {
 			primaries = append(primaries, i)
 		}
-		if !config[i] {
+		if config[i] == 1 {
+			stragglers = append(activeBackups, i)
+		}
+		if config[i] == 2 {
 			stragglers = append(stragglers, i)
 		}
 	}
+
 	numActive := len(primaries)
 
 	for r := 0; r < k; r++ {
@@ -155,16 +159,20 @@ type Delay struct {
 	TimeDelay   int
 }
 
-func GenerateConfigFromDelay(k int, delay Delay) map[int]bool {
-	config := make(map[int]bool)
+func GenerateConfigFromDelay(k int, delay Delay) map[int]int {
+	config := make(map[int]int)
 	for i := 0; i < k; i++ {
+		// backup
 		if delay.NodeID == i {
-			config[i] = false
+			config[i] = 2
 		} else {
-			config[i] = true
+			// primary
+			config[i] = 0
 
 		}
 	}
+	// active backup
+	config[k-1] = 1
 
 	return config
 }

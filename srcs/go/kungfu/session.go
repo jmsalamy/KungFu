@@ -283,7 +283,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn {
-				if sess.rank == delay.NodeID {
+				if sess.rank == delay.NodeID && sess.iterationIdx%delay.IterationID == 0 {
 					// log.Debugf("delaying worker --------------------	")
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))

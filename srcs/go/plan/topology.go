@@ -122,7 +122,10 @@ func GenCircularGraphPair(k, r int) (*Graph, *Graph) {
 	return g, b
 }
 
-func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int, primaries, backups []int) (*Graph, *Graph) {
+// GenCircularGraphPairFromConfig generates primary-backup strategy based on Ring strategies
+func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int, primaries, activeBackups, stragglers []int) (*Graph, *Graph) {
+	// start with a full ring and remove the appropriate 1 edge to create a rooted ring topology for reduce
+	// and bcast graph
 	r := NewGraph(k)
 	b := NewGraph(k)
 
@@ -131,10 +134,13 @@ func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int
 	}
 
 	var bcastGraphLastNode int
+	var reduceGraphLastNode int
+
 	for i := 0; i < len(primaries); i++ {
 		fromNode, toNode := primaries[i], primaries[(i+1)%len(primaries)]
 		if i != reduceEdgeToRemove {
 			r.AddEdge(fromNode, toNode)
+			reduceGraphLastNode = toNode
 
 		}
 		if i != bcastEdgeToRemove {
@@ -143,15 +149,28 @@ func GenCircularGraphPairFromConfig(k, reduceEdgeToRemove, bcastEdgeToRemove int
 		}
 	}
 
-	// add final bcastGraph edge for pushing values to the disconnected worker
-	fromNode := bcastGraphLastNode
-	for i := 0; i < len(backups); i++ {
-		toNode := backups[i]
-		b.AddEdge(fromNode, toNode)
-		fromNode = toNode
+	// add active backup node into the primaries reduceGraph ring
+	fromNodeReduce := reduceGraphLastNode
+	for i := 0; i < len(activeBackups); i++ {
+		toNode := activeBackups[i]
+		r.AddEdge(fromNodeReduce, toNode)
+		fromNodeReduce = toNode
 	}
-	// start with a full ring and remove the appropriate 1 edge to create a rooted ring topology for reduce
-	// and bcast graph
+
+	// add final bcastGraph edge for pushing values to the disconnected stragglers and active backups
+	fromNodeBroadcast := bcastGraphLastNode
+	for i := 0; i < len(stragglers); i++ {
+		toNode := stragglers[i]
+		b.AddEdge(fromNodeBroadcast, toNode)
+		fromNodeBroadcast = toNode
+	}
+
+	for i := 0; i < len(activeBackups); i++ {
+		toNode := activeBackups[i]
+		b.AddEdge(fromNodeBroadcast, toNode)
+		fromNodeBroadcast = toNode
+	}
+
 	return r, b
 }
 

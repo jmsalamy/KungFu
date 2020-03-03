@@ -134,6 +134,16 @@ kungfu-run -np 16 \
 python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_baseline_active_backup --train_epochs=90 --batch_size=128
 
 
+kungfu-run -np 15 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:3 \
+-nic eth0 \
+-logdir logs/16_baseline_active_backup_rerun/ \
+-strategy RING \
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_baseline_active_backup_rerun --train_epochs=90 --batch_size=128
+
+
+
+
 # --------------------------------------
 # Misc. 
 cd resnet-test-kungfu/
@@ -150,15 +160,35 @@ git pull
 cd ../src/KungFu
 git pull 
 
+
+
 # ---------------------------------------
+kungfu-run -np 16 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy RING \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=100
+
+
+kungfu-run -np 20 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy RING \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=102 --num-warmup-batches=100
+
+
 kungfu-run -np 8 \
 -H 10.128.0.14:4,10.128.0.15:4 \
 -nic eth0 \
 -logdir logs/debug/ \
 -strategy RING \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=100
 
 
+
+cd src/KungFu
 yes | pip uninstall KungFu
 pip wheel -vvv --no-index ./
 pip install --no-index ./

@@ -172,7 +172,7 @@ func GenerateConfigFromDelay(k int, delay Delay) map[int]int {
 		}
 	}
 	// active backup
-	config[k-1] = 1
+	config[k-1] = 0
 
 	return config
 }

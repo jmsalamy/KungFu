@@ -39,7 +39,7 @@ type Kungfu struct {
 	checkpoint       string
 	updated          bool
 	currentIteration int
-	delayConfig      []Delay
+	delayConfig      map[int]Delay
 }
 
 func New() (*Kungfu, error) {
@@ -283,7 +283,7 @@ func (kf *Kungfu) parseIterationDelay() Delay {
 	return kf.delayConfig[kf.currentIteration%len(kf.delayConfig)]
 }
 
-func parseDelayConfigFile() []Delay {
+func parseDelayConfigFile() map[int]Delay {
 	// pwd, _ := os.Getwd()
 	data, err := ioutil.ReadFile("/home/ghobadi_mit_edu/src/KungFu/config.txt")
 	if err != nil {
@@ -295,15 +295,18 @@ func parseDelayConfigFile() []Delay {
 	configNewLineSeparated := strings.Split(config, "\n")
 
 	// convert byte array to []Delay
-	var delayArr []Delay
+	// var delayArr []Delay
+	delayMap := make(map[int]Delay)
+
 	for _, row := range configNewLineSeparated {
 		args := strings.Split(row, ",")
 		delay := parseDelayFromRow(args)
-		delayArr = append(delayArr, delay)
+		delayMap[delay.IterationID] = delay
+		// delayArr = append(delayArr, delay)
 
 	}
 
-	return delayArr
+	return delayMap
 }
 
 func parseDelayFromRow(args []string) Delay {

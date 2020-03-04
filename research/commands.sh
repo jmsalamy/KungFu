@@ -168,7 +168,7 @@ kungfu-run -np 16 \
 -nic eth0 \
 -logdir logs/debug/ \
 -strategy RING \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=100
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
 
 
 kungfu-run -np 20 \
@@ -184,11 +184,13 @@ kungfu-run -np 8 \
 -nic eth0 \
 -logdir logs/debug/ \
 -strategy RING \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=100
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=0 --reshape-on=True
 
 
 
 cd src/KungFu
+git checkout . 
+git pull 
 yes | pip uninstall KungFu
 pip wheel -vvv --no-index ./
 pip install --no-index ./

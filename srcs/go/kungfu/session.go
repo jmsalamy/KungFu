@@ -30,12 +30,12 @@ type session struct {
 	localRank     int
 	router        *rch.Router
 	backupEnabled bool
-	delayConfig   []Delay
+	delayConfig   map[int]Delay
 	iterationIdx  int
 	delayOn       bool
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, config []Delay, iter int) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, config map[int]Delay, iter int) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -271,8 +271,8 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 
 	// delay the appropriate worker by delay.TimeDelay ms
 	// TODO: parse Delay from file and update it every iteration here
-	sess.delayOn = false
-	delay := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
+	sess.delayOn = true
+	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 
 	for _, g := range graphs {
 		// reduce graph
@@ -283,7 +283,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn {
-				if sess.rank == delay.NodeID && sess.iterationIdx%delay.IterationID == 0 {
+				if sess.rank == delay.NodeID && ok {
 					// log.Debugf("delaying worker --------------------	")
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))

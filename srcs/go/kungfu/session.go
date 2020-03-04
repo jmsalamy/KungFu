@@ -273,11 +273,14 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	// TODO: parse Delay from file and update it every iteration here
 	sess.delayOn = true
 	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-	log.Debugf("info here")
-	log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-	log.Debugf(fmt.Sprintf("ok :",ok))
-	log.Debugf(fmt.Sprintf("delay : ",delay))
+	isDebug := false
+	if sess.rank == 0 && isDebug {
 
+		log.Debugf("info here")
+		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
+		log.Debugf(fmt.Sprintf("ok :",ok))
+		log.Debugf(fmt.Sprintf("delay : ",delay))
+	}
 
 	for _, g := range graphs {
 		// reduce graph

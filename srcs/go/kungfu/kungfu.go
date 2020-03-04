@@ -258,9 +258,11 @@ func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	// generate custom strategies here for experiments
 	// next, modify this method to work with a specific monitored metric
-	delay := kf.parseIterationDelay()
-	config := GenerateConfigFromDelay(len(kf.currentPeers), delay)
-	strategy := createRingStrategiesFromConfig(kf.currentPeers, config)
+	delay, ok := kf.parseIterationDelay()
+	var strategy []strategy
+	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok)
+	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
+
 	backup := true
 	return strategy, backup
 
@@ -278,9 +280,10 @@ func (kf *Kungfu) ReshapeStrategy() (bool, error) {
 	return strategyChanged, nil
 }
 
-func (kf *Kungfu) parseIterationDelay() Delay {
+func (kf *Kungfu) parseIterationDelay() (Delay, bool) {
 	// TODO track current iteration and read from that to Delay
-	return kf.delayConfig[kf.currentIteration%len(kf.delayConfig)]
+	delay, ok := kf.delayConfig[kf.currentIteration%len(kf.delayConfig)]
+	return delay, ok
 }
 
 func parseDelayConfigFile() map[int]Delay {
@@ -314,7 +317,7 @@ func parseDelayFromRow(args []string) Delay {
 	for _, i := range args {
 		j, err := strconv.Atoi(i)
 		if err != nil {
-			return Delay{0, 0, 0}
+			return Delay{1, 0, 0}
 		}
 		delayArgs = append(delayArgs, j)
 	}

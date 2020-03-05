@@ -262,7 +262,7 @@ func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	var strategy []strategy
 
 	// enable/disable active backup
-	activeBackup := true
+	activeBackup := false
 
 	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, activeBackup)
 	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
@@ -285,7 +285,7 @@ func (kf *Kungfu) ReshapeStrategy() (bool, error) {
 }
 
 func (kf *Kungfu) parseIterationDelay() (Delay, bool) {
-	// TODO track current iteration and read from that to Delay
+	// TODO track current iteration and read from that to Delay vim srcs/go/kungfu/kungfu.go
 	delay, ok := kf.delayConfig[kf.currentIteration%len(kf.delayConfig)]
 	return delay, ok
 }

@@ -260,7 +260,11 @@ func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 	// next, modify this method to work with a specific monitored metric
 	delay, ok := kf.parseIterationDelay()
 	var strategy []strategy
-	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok)
+
+	// enable/disable active backup
+	activeBackup := true
+
+	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, activeBackup)
 	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
 
 	backup := true

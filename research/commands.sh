@@ -189,6 +189,8 @@ python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-b
 
 
 cd src/KungFu
+
+
 git checkout . 
 git pull 
 yes | pip uninstall KungFu

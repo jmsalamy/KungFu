@@ -159,22 +159,22 @@ type Delay struct {
 	TimeDelay   int
 }
 
-func GenerateConfigFromDelay(k int, delay Delay, isStraggling bool) map[int]int {
+func GenerateConfigFromDelay(k int, delay Delay, isStraggling, enableActiveBackup bool) map[int]int {
 	config := make(map[int]int)
 	for i := 0; i < k; i++ {
 		// backup/straggler node
-		if delay.NodeID == i {
-			if isStraggling {
-				config[i] = 2
-			} else {
-				config[i] = 0
-			}
+		if delay.NodeID == i && isStraggling {
+			config[i] = 2
 
 		} else {
 			// primary
 			config[i] = 0
 
 		}
+	}
+
+	if !enableActiveBackup {
+		return config
 	}
 	// active backup
 	if isStraggling {

@@ -273,7 +273,7 @@ func (kf *Kungfu) nextStrategy() ([]strategy, bool) {
 }
 
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
-func (kf *Kungfu) ReshapeStrategy() (bool, error) {
+func (kf *Kungfu) ReshapeStrategy(step int) (bool, error) {
 	newStrategy, backup := kf.nextStrategy()
 	strategyChanged := kf.proposeStrategy(newStrategy)
 

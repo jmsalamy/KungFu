@@ -89,7 +89,7 @@ func (sess *session) barrier() error {
 		SendBuf: kb.NewVector(count, dtype),
 		RecvBuf: kb.NewVector(count, dtype),
 		OP:      kb.SUM,
-		Name:    "kungfu::barrier", // TODO: use tag
+		Name:    "kungfu::barrier", // 	TODO: use tag
 	}
 	// turn off delay for the barrier op (delay should only happen during an AllReduce op)
 	sess.delayOn = false
@@ -273,7 +273,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	// TODO: parse Delay from file and update it every iteration here
 	sess.delayOn = true
 	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-	isDebug := false
+	isDebug := false	
 	if sess.rank == 0 && isDebug {
 
 		log.Debugf("info here")
@@ -298,7 +298,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
 					// log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
-				}
+				}	
 			}
 			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
 				return err

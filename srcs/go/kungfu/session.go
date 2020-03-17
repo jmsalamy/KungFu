@@ -35,7 +35,7 @@ type session struct {
 	delayOn       bool
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, config map[int]Delay, iter int) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, config map[int]Delay, iter int) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -51,16 +51,15 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 	delayOn := true
 
 	sess := &session{
-		strategies:    partitionStrategies[strategy](pl),
-		self:          self,
-		peers:         pl,
-		rank:          rank,
-		localRank:     localRank,
-		router:        router,
-		backupEnabled: backup,
-		delayConfig:   config,
-		iterationIdx:  iter,
-		delayOn:       delayOn,
+		strategies:   partitionStrategies[strategy](pl),
+		self:         self,
+		peers:        pl,
+		rank:         rank,
+		localRank:    localRank,
+		router:       router,
+		delayConfig:  config,
+		iterationIdx: iter,
+		delayOn:      delayOn,
 	}
 	return sess, true
 }
@@ -89,7 +88,7 @@ func (sess *session) barrier() error {
 		SendBuf: kb.NewVector(count, dtype),
 		RecvBuf: kb.NewVector(count, dtype),
 		OP:      kb.SUM,
-		Name:    "kungfu::barrier", // TODO: use tag
+		Name:    "kungfu::barrier", // 	TODO: use tag
 	}
 	// turn off delay for the barrier op (delay should only happen during an AllReduce op)
 	sess.delayOn = false
@@ -139,17 +138,6 @@ func (sess *session) BytesConsensus(bs []byte, name string) (bool, error) {
 }
 
 func (sess *session) AllReduce(w Workspace) error {
-	if !sess.backupEnabled {
-		sess.iterationIdx++
-	}
-	// var isAllReduce bool
-	// if !isDirectCall {
-	// 	isAllReduce = false
-	// } else {
-	// 	isAllReduce = true
-	// }
-	// ensure delay is on when calling AllReduce
-	sess.delayOn = true
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies, true)
 }
 
@@ -278,8 +266,8 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 
 		log.Debugf("info here")
 		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-		log.Debugf(fmt.Sprintf("ok :",ok))
-		log.Debugf(fmt.Sprintf("delay : ",delay))
+		log.Debugf(fmt.Sprintf("ok :", ok))
+		log.Debugf(fmt.Sprintf("delay : ", delay))
 	}
 
 	for _, g := range graphs {

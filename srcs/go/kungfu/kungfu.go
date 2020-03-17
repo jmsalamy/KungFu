@@ -276,7 +276,7 @@ func (kf *Kungfu) ReshapeStrategy() (bool, error) {
 	// change this variable to set measure baseline delay for now.
 	// TODO: Move this out to ReshapeStrategy as an argument.
 
-	baselineDelayOn := true
+	baselineDelayOn := true 
 	if baselineDelayOn {
 		newStrategy = kf.CurrentSession().strategies
 	}

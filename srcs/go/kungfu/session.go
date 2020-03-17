@@ -261,7 +261,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	// TODO: parse Delay from file and update it every iteration here
 	sess.delayOn = true 
 	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-	isDebug := true 
+	isDebug := false 
 	if sess.rank == 0 && isDebug {
 
 		log.Debugf("info here")

@@ -35,7 +35,7 @@ type session struct {
 	delayOn       bool
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, backup bool, config map[int]Delay, iter int) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, config map[int]Delay, iter int) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -51,16 +51,15 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 	delayOn := true
 
 	sess := &session{
-		strategies:    partitionStrategies[strategy](pl),
-		self:          self,
-		peers:         pl,
-		rank:          rank,
-		localRank:     localRank,
-		router:        router,
-		backupEnabled: backup,
-		delayConfig:   config,
-		iterationIdx:  iter,
-		delayOn:       delayOn,
+		strategies:   partitionStrategies[strategy](pl),
+		self:         self,
+		peers:        pl,
+		rank:         rank,
+		localRank:    localRank,
+		router:       router,
+		delayConfig:  config,
+		iterationIdx: iter,
+		delayOn:      delayOn,
 	}
 	return sess, true
 }
@@ -139,17 +138,6 @@ func (sess *session) BytesConsensus(bs []byte, name string) (bool, error) {
 }
 
 func (sess *session) AllReduce(w Workspace) error {
-	if !sess.backupEnabled {
-		sess.iterationIdx++
-	}
-	// var isAllReduce bool
-	// if !isDirectCall {
-	// 	isAllReduce = false
-	// } else {
-	// 	isAllReduce = true
-	// }
-	// ensure delay is on when calling AllReduce
-	sess.delayOn = true
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies, true)
 }
 
@@ -273,13 +261,13 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	// TODO: parse Delay from file and update it every iteration here
 	sess.delayOn = true
 	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-	isDebug := false	
+	isDebug := false
 	if sess.rank == 0 && isDebug {
 
 		log.Debugf("info here")
 		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-		log.Debugf(fmt.Sprintf("ok :",ok))
-		log.Debugf(fmt.Sprintf("delay : ",delay))
+		log.Debugf(fmt.Sprintf("ok :", ok))
+		log.Debugf(fmt.Sprintf("delay : ", delay))
 	}
 
 	for _, g := range graphs {
@@ -298,7 +286,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
 					// log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
-				}	
+				}
 			}
 			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
 				return err

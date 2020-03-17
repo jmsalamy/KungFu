@@ -270,7 +270,7 @@ func (kf *Kungfu) nextStrategy() []strategy {
 }
 
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
-func (kf *Kungfu) ReshapeStrategy(step int) (bool, error) {
+func (kf *Kungfu) ReshapeStrategy() (bool, error) {
 	newStrategy := kf.nextStrategy()
 
 	// change this variable to set measure baseline delay for now.

@@ -114,7 +114,7 @@ kungfu-run -np 16 \
 -nic eth0 \
 -logdir logs/16_straggler_on_reshape_on/ \
 -strategy RING \
-python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_straggler_on_reshape_on --train_epochs=90 --batch_size=128
+python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/16_straggler_on_reshape_on --train_epochs=2 --batch_size=128  --train_steps=500 --skip_eval=True
 
 
 
@@ -162,6 +162,15 @@ kungfu-run -np 16 \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
 
 
+kungfu-run -np 15 \
+-H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:3 \
+-nic eth0 \
+-logdir logs/debug/ \
+-strategy RING \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=136 --num-warmup-batches=10 --reshape-on=True
+
+
+
 kungfu-run -np 20 \
 -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
 -nic eth0 \
@@ -181,6 +190,9 @@ python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-b
 
 cd src/KungFu
 git checkout . 
+
+git add . 
+git commit -m "saving change"
 git pull 
 
 yes | pip uninstall KungFu

@@ -48,7 +48,8 @@ class ResizeCluster : public OpKernel
 REGISTER_KUNGFU_KERNEL_BUILDER(ResizeCluster, DEVICE_CPU);
 
 REGISTER_KUNGFU_OP(ReshapeStrategy)
-    // .Input("chkpt : null")
+    //Global step information for iteration level tracking 
+    // .Input("global_step: int32")
     // indicates if strategy is changed
     .Output("changed: bool")
     .SetIsStateful()
@@ -69,8 +70,7 @@ class ReshapeStrategy : public OpKernel
 
     void Compute(OpKernelContext *context) override
     {
-    //     const std::string &chpt = context->input(0).scalar<std::string>()();
-    //     const int32_t new_size  = context->input(1).scalar<int32_t>()();
+        // const int32_t global_step  = context->input(0).scalar<int32_t>()();
         Tensor *changed = nullptr;
         OP_REQUIRES_OK(
             context, context->allocate_output(0, MakeTensorShape(), &changed));

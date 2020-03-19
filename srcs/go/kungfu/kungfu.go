@@ -56,6 +56,14 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 	server := rch.NewServer(router)
 	// initialize config at the beginning of a new session
 	delayConfig := parseDelayConfigFile()
+
+	if config.DelayOn {
+		log.Debugf("Delay reaches here and set to True")
+	}
+	if !config.DelayOn {
+		log.Debugf("Delay reaches here and set to False")
+
+	}
 	return &Kungfu{
 		parent:           config.Parent,
 		parents:          config.Parents,
@@ -72,6 +80,7 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 		delayConfig:      delayConfig,
 		DelayOn:          config.DelayOn,
 	}, nil
+
 }
 
 func (kf *Kungfu) Start() error {

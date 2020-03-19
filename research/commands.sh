@@ -186,7 +186,7 @@ kungfu-run -np 8 \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=0 --reshape-on=True
 
 
-
+cd src/KungFu
 git pull 
 yes | pip uninstall KungFu
 pip wheel -vvv --no-index ./

@@ -20,7 +20,7 @@ type Job struct {
 	Args        []string
 	LogDir      string
 	AllowNVLink bool
-	DelayOn     string
+	DelayOn     bool
 }
 
 func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan.PeerList) Proc {
@@ -32,7 +32,7 @@ func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan
 		kb.PeerListEnvKey:          pl.String(),
 		kb.CheckpointEnvKey:        checkpoint,
 		kb.AllReduceStrategyEnvKey: j.Strategy.String(),
-		kb.DelayOnEnvKey:           j.DelayOn,
+		kb.DelayOnEnvKey:           boolToString(j.DelayOn),
 	}
 
 	cudaIdx := strconv.Itoa(getCudaIndex(localRank))
@@ -52,6 +52,7 @@ func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan
 		}
 	}
 
+	delayOnString := boolToString(j.DelayOn)
 	return Proc{
 		Name:    fmt.Sprintf("%s.%d", plan.FormatIPv4(peer.IPv4), peer.Port),
 		Prog:    j.Prog,
@@ -60,7 +61,7 @@ func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan
 		IPv4:    peer.IPv4,
 		PubAddr: pubAddr,
 		LogDir:  j.LogDir,
-		DelayOn: j.DelayOn,
+		DelayOn: delayOnString,
 	}
 }
 
@@ -92,4 +93,11 @@ func getConfigEnvs() Envs {
 		}
 	}
 	return envs
+}
+
+func boolToString(boolean bool) string {
+	if boolean {
+		return "true"
+	}
+	return "false"
 }

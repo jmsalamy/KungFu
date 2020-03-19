@@ -8,9 +8,8 @@ import (
 
 func getDelayFromEnv() bool {
 	val, _ := os.LookupEnv(kb.DelayOnEnvKey)
-	if val == "True" {
+	if val == "true" {
 		return true
-	} else {
-		return false
 	}
+	return false
 }

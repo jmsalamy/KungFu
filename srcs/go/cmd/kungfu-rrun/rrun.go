@@ -26,13 +26,14 @@ func main() {
 		utils.ExitErr(fmt.Errorf("failed to create peers: %v", err))
 	}
 	j := job.Job{
-		Strategy:  f.Strategy,
-		HostList:  hl,
-		PortRange: f.PortRange,
-		Prog:      f.Prog,
-		Args:      f.Args,
-		LogDir:    f.LogDir,
-		DelayOn:   f.DelayOn,
+		Strategy:     f.Strategy,
+		HostList:     hl,
+		PortRange:    f.PortRange,
+		Prog:         f.Prog,
+		Args:         f.Args,
+		LogDir:       f.LogDir,
+		DelayOn:      f.DelayOn,
+		ActiveBackup: f.ActiveBackup,
 	}
 	procs := j.CreateAllProcs(peers)
 	ctx, cancel := context.WithCancel(context.Background())

@@ -34,7 +34,7 @@ type session struct {
 	delayOn      bool
 }
 
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, config map[int]Delay, iter int) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, config map[int]Delay, iter int, delayOn bool) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -47,7 +47,6 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 		strategy = autoSelect(pl)
 	}
 	// keep delayOn by default (and turn it on/off selectively thereafter in AllReduce and Barrier)
-	delayOn := true
 
 	sess := &session{
 		strategies:   partitionStrategies[strategy](pl),
@@ -90,7 +89,6 @@ func (sess *session) barrier() error {
 		Name:    "kungfu::barrier", // 	TODO: use tag
 	}
 	// turn off delay for the barrier op (delay should only happen during an AllReduce op)
-	sess.delayOn = false
 	return sess.runStrategies(w, plan.EvenPartition, sess.strategies, false)
 }
 
@@ -258,7 +256,6 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 
 	// delay the appropriate worker by delay.TimeDelay ms
 	// TODO: parse Delay from file and update it every iteration here
-	sess.delayOn = true
 	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 	isDebug := false
 	if sess.rank == 0 && isDebug {
@@ -278,8 +275,9 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn {
+				log.Debugf("delay turned on------------------")
 				if sess.rank == delay.NodeID && ok {
-					// log.Debugf("delaying worker --------------------	")
+					log.Debugf("delaying worker for this iteration --------------------")
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
 					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))

@@ -148,7 +148,7 @@ func (kf *Kungfu) UpdateStrategy(newStrategy []strategy) bool {
 
 func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy) bool {
 	// TODO : add check to bypass method if unnecessary
-	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, kf.delayConfig, kf.currentIteration)
+	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
 	sess.strategies = newStrategy
 	if !exist {
 		return false
@@ -169,7 +169,7 @@ func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
 	log.Debugf("Kungfu::updateTo(%s), %d peers", pl, len(pl))
 	kf.router.ResetConnections(pl)
 
-	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, kf.delayConfig, kf.currentIteration)
+	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
 	if !exist {
 		return false
 	}

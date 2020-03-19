@@ -154,28 +154,32 @@ git pull
 
 
 # ---------------------------------------
+
+
+# kungfu-run -np 15 \
+# -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:3 \
+# -nic eth0 \
+# -logdir logs/debug/ \
+# -strategy RING \
+# python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=136 --num-warmup-batches=10 --reshape-on=True
+
+
+# kungfu-run -np 20 \
+# -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
+# -nic eth0 \
+# -logdir logs/debug/ \
+# -strategy RING \
+# python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=102 --num-warmup-batches=100
+
+
 kungfu-run -np 16 \
 -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4 \
 -nic eth0 \
 -logdir logs/debug/ \
 -strategy RING \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on=True
-
-
-kungfu-run -np 15 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:3 \
--nic eth0 \
--logdir logs/debug/ \
--strategy RING \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=136 --num-warmup-batches=10 --reshape-on=True
-
-
-kungfu-run -np 20 \
--H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
--nic eth0 \
--logdir logs/debug/ \
--strategy RING \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=102 --num-warmup-batches=100
+-delay=false \
+-activeBackup=false \
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=50
 
 
 kungfu-run -np 8 \
@@ -183,7 +187,8 @@ kungfu-run -np 8 \
 -nic eth0 \
 -logdir logs/debug/ \
 -strategy RING \
--delay=true \
+-delay=false \
+-activeBackup=false \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
 
 
@@ -197,12 +202,12 @@ export PATH=$PATH:$(pwd)/bin
 
 
 #iperf testing kungfu-run 
-kungfu-run -np 8 \
--H 10.128.0.14:4,10.128.0.15:4 \
--nic eth0 \
--logdir logs/debug \
--strategy BINARY_TREE \
-python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/debug --train_epochs=1 --batch_size=128 --train_steps=2000 --synth=True --skip_eval=True --log_steps=20
+# kungfu-run -np 8 \
+# -H 10.128.0.14:4,10.128.0.15:4 \
+# -nic eth0 \
+# -logdir logs/debug \
+# -strategy BINARY_TREE \
+# python official/vision/image_classification/kungfu_resnet_main.py  --data_dir=../../imagenet/data/imagenet/data/ --model_dir=./saved-models/debug --train_epochs=1 --batch_size=128 --train_steps=2000 --synth=True --skip_eval=True --log_steps=20
 
 
 

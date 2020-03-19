@@ -257,9 +257,9 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 	// delay the appropriate worker by delay.TimeDelay ms
 	// TODO: parse Delay from file and update it every iteration here
 	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
+
 	isDebug := false
 	if sess.rank == 0 && isDebug {
-
 		log.Debugf("info here")
 		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 		log.Debugf(fmt.Sprintf("ok :", ok))
@@ -275,9 +275,8 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn {
-				log.Debugf("delay turned on------------------")
 				if sess.rank == delay.NodeID && ok {
-					log.Debugf("delaying worker for this iteration --------------------")
+					// log.Debugf("delaying worker for this iteration --------------------")
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
 					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))

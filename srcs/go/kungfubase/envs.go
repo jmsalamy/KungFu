@@ -11,4 +11,5 @@ const (
 	HostSpecEnvKey          = `KUNGFU_HOST_SPEC`
 	SelfSpecEnvKey          = `KUNGFU_SELF_SPEC` // self spec should never change during the life of a process
 	AllReduceStrategyEnvKey = `KUNGFU_ALLREDUCE_STRATEGY`
+	DelayOnEnvKey           = `KUNGFU_DELAY_ON`
 )

@@ -23,16 +23,15 @@ type strategy struct {
 
 // session contains the immutable topology and strategies for a given period of logical duration
 type session struct {
-	strategies    []strategy
-	self          plan.PeerID
-	peers         plan.PeerList
-	rank          int
-	localRank     int
-	router        *rch.Router
-	backupEnabled bool
-	delayConfig   map[int]Delay
-	iterationIdx  int
-	delayOn       bool
+	strategies   []strategy
+	self         plan.PeerID
+	peers        plan.PeerList
+	rank         int
+	localRank    int
+	router       *rch.Router
+	delayConfig  map[int]Delay
+	iterationIdx int
+	delayOn      bool
 }
 
 func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, config map[int]Delay, iter int) (*session, bool) {
@@ -259,9 +258,9 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 
 	// delay the appropriate worker by delay.TimeDelay ms
 	// TODO: parse Delay from file and update it every iteration here
-	sess.delayOn = true 
+	sess.delayOn = true
 	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-	isDebug := false 
+	isDebug := false
 	if sess.rank == 0 && isDebug {
 
 		log.Debugf("info here")

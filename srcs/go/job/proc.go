@@ -36,6 +36,7 @@ type Proc struct {
 	IPv4    uint32
 	PubAddr string
 	LogDir  string
+	DelayOn string
 }
 
 func (p Proc) Cmd() *exec.Cmd {

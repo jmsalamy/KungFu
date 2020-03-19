@@ -78,6 +78,7 @@ func main() {
 		Args:        f.Args,
 		LogDir:      f.LogDir,
 		AllowNVLink: f.AllowNVLink,
+		DelayOn:     f.DelayOn,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	trap(cancel)

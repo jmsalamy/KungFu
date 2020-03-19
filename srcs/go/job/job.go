@@ -12,15 +12,15 @@ import (
 )
 
 type Job struct {
-	Strategy  kb.Strategy
-	Parent    plan.PeerID
-	HostList  plan.HostList
-	PortRange plan.PortRange
-	Prog      string
-	Args      []string
-	LogDir    string
-
+	Strategy    kb.Strategy
+	Parent      plan.PeerID
+	HostList    plan.HostList
+	PortRange   plan.PortRange
+	Prog        string
+	Args        []string
+	LogDir      string
 	AllowNVLink bool
+	DelayOn     string
 }
 
 func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan.PeerList) Proc {
@@ -32,6 +32,7 @@ func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan
 		kb.PeerListEnvKey:          pl.String(),
 		kb.CheckpointEnvKey:        checkpoint,
 		kb.AllReduceStrategyEnvKey: j.Strategy.String(),
+		kb.DelayOnEnvKey:           j.DelayOn,
 	}
 
 	cudaIdx := strconv.Itoa(getCudaIndex(localRank))
@@ -59,6 +60,7 @@ func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan
 		IPv4:    peer.IPv4,
 		PubAddr: pubAddr,
 		LogDir:  j.LogDir,
+		DelayOn: j.DelayOn,
 	}
 }
 

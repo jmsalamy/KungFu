@@ -50,8 +50,9 @@ type FlagSet struct {
 	LogDir  string
 	Quiet   bool
 
-	Prog string
-	Args []string
+	Prog    string
+	Args    []string
+	DelayOn bool
 }
 
 func (f *FlagSet) Register(flag *flag.FlagSet) {
@@ -80,6 +81,8 @@ func (f *FlagSet) Register(flag *flag.FlagSet) {
 	flag.StringVar(&f.Logfile, "logfile", "", "path to log file")
 	flag.StringVar(&f.LogDir, "logdir", "", "path to log dir")
 	flag.BoolVar(&f.Quiet, "q", false, "don't log debug info")
+	flag.BoolVar(&f.DelayOn, "delay", false, "add config delays to this run")
+
 }
 
 var errMissingProgramName = errors.New("missing program name")

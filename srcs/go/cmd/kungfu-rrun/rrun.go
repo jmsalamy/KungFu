@@ -32,6 +32,7 @@ func main() {
 		Prog:      f.Prog,
 		Args:      f.Args,
 		LogDir:    f.LogDir,
+		DelayOn:   f.DelayOn,
 	}
 	procs := j.CreateAllProcs(peers)
 	ctx, cancel := context.WithCancel(context.Background())

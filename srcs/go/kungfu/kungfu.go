@@ -40,6 +40,7 @@ type Kungfu struct {
 	updated          bool
 	currentIteration int
 	delayConfig      map[int]Delay
+	DelayOn          bool
 }
 
 func New() (*Kungfu, error) {
@@ -69,6 +70,7 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 		server:           server,
 		currentIteration: 0,
 		delayConfig:      delayConfig,
+		DelayOn:          config.DelayOn,
 	}, nil
 }
 

@@ -140,12 +140,12 @@ func (sess *session) AllReduce(w Workspace) error {
 
 func (sess *session) Reduce(w Workspace) error {
 	strategy := sess.strategies[0] // Assuming len(sess.strategies) > 0
-	return sess.runGraphs(w, strategy.reduceGraph)
+	return sess.runGraphs(w, false, strategy.reduceGraph)
 }
 
 func (sess *session) Broadcast(w Workspace) error {
 	strategy := sess.strategies[0] // Assuming len(sess.strategies) > 0
-	return sess.runGraphs(w, strategy.bcastGraph)
+	return sess.runGraphs(w, false, strategy.bcastGraph)
 }
 
 func (sess *session) Gather(w Workspace) error {
@@ -192,7 +192,7 @@ func (sess *session) runGather(w Workspace) error {
 	return nil // FIXME: handle errors
 }
 
-func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
+func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Graph) error {
 
 	if len(sess.peers) == 1 {
 		w.RecvBuf.CopyFrom(w.SendBuf)
@@ -274,7 +274,7 @@ func (sess *session) runGraphs(w Workspace, graphs ...*plan.Graph) error {
 				return err
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
-			if sess.delayOn {
+			if sess.delayOn && isAllReduce {
 				if sess.rank == delay.NodeID && ok {
 					// log.Debugf("delaying worker for this iteration --------------------")
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
@@ -333,7 +333,7 @@ func (sess *session) runStrategies(w Workspace, p partitionFunc, strategies []st
 	for i, w := range w.split(p, k) {
 		wg.Add(1)
 		go func(i int, w Workspace, s strategy) {
-			errs[i] = sess.runGraphs(w, s.reduceGraph, s.bcastGraph)
+			errs[i] = sess.runGraphs(w, isAllReduce, s.reduceGraph, s.bcastGraph)
 			wg.Done()
 		}(i, w, strategies[i%len(strategies)])
 	}

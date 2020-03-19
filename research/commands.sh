@@ -170,7 +170,6 @@ kungfu-run -np 15 \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=136 --num-warmup-batches=10 --reshape-on=True
 
 
-
 kungfu-run -np 20 \
 -H 10.128.0.14:4,10.128.0.15:4,10.128.0.16:4,10.128.0.17:4,10.128.0.18:4 \
 -nic eth0 \
@@ -191,9 +190,6 @@ python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-b
 cd src/KungFu
 git checkout . 
 
-git add . 
-git commit -m "saving change"
-git pull 
 
 yes | pip uninstall KungFu
 pip wheel -vvv --no-index ./

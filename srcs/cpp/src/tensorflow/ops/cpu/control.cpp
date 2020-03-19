@@ -49,7 +49,7 @@ REGISTER_KUNGFU_KERNEL_BUILDER(ResizeCluster, DEVICE_CPU);
 
 REGISTER_KUNGFU_OP(ReshapeStrategy)
     //Global step information for iteration level tracking 
-    // .Input("global_step: int32")
+    .Input("reshape_on: int32")
     // indicates if strategy is changed
     .Output("changed: bool")
     .SetIsStateful()
@@ -65,16 +65,15 @@ class ReshapeStrategy : public OpKernel
   public:
     ReshapeStrategy(OpKernelConstruction *context) : OpKernel(context)
     {
-        context->GetAttr("debug", &debug_);
     }
 
     void Compute(OpKernelContext *context) override
     {
-        // const int32_t global_step  = context->input(0).scalar<int32_t>()();
+        const int32_t reshape_on  = context->input(0).scalar<int32_t>()();
         Tensor *changed = nullptr;
         OP_REQUIRES_OK(
             context, context->allocate_output(0, MakeTensorShape(), &changed));
-        _kungfu_world->ReshapeStrategy(changed->scalar<bool>().data());
+        _kungfu_world->ReshapeStrategy(reshape_on, changed->scalar<bool>().data());
     }
 };
 

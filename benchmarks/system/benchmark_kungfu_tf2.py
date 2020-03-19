@@ -63,6 +63,7 @@ parser.add_argument('--reshape-on',
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda
+reshape = 1 if args.reshape_on == True else 0
 
 # Set up standard model.
 model = getattr(applications, args.model)(weights=None)
@@ -90,9 +91,7 @@ target = tf.random.uniform([args.batch_size, 1],
 @tf.function
 def benchmark_step(first_batch):
     # reshape strategy here 
-    if args.reshape_on:
-        log("reshaping strategy is on ----------------------------------------")
-        reshape_strategy(debug=False)
+    reshape_strategy(reshape)
     # gradient calculation and updates
     with tf.GradientTape() as tape:
         probs = model(data, training=True)

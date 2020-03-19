@@ -29,15 +29,15 @@ def resize_cluster(checkpoint, new_size, debug=True):
     return _op_lib.kungfu_resize_cluster(checkpoint, new_size, debug=debug)
 
 
-def reshape_strategy(debug=True):
+def reshape_strategy(reshape):
     """Reshapes a cluster's allReduce Strategy 
 
-    Inputs:
+    Inputs:reshape = whether to reshape strategy or not. Keep the method call in your script either way.
 
-    Returns:
+    Returns: True if the op was successful.
 
     """
-    return _op_lib.kungfu_reshape_strategy(debug=debug)
+    return _op_lib.kungfu_reshape_strategy(reshape_on=reshape)
 
 
 def step_based_schedule(config, step=None):

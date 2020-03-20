@@ -230,8 +230,8 @@ int kungfu_world::ResizeCluster(const char *ckpt, int new_size, bool *changed,
                                  reinterpret_cast<char *>(keep));
 }
 
-int kungfu_world::ReshapeStrategy(bool *changed)
+int kungfu_world::ReshapeStrategy(int reshape_on, bool *changed)
 {
     static_assert(sizeof(bool) == sizeof(char), "");
-    return GoKungfuReshapeStrategy(reinterpret_cast<char *>(changed));
+    return GoKungfuReshapeStrategy(GoInt(reshape_on), reinterpret_cast<char *>(changed));
 }

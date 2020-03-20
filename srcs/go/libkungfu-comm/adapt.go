@@ -17,8 +17,8 @@ func GoKungfuResizeCluster(pCkpt *C.char, size int, pChanged, pKeep *C.char) int
 }
 
 //export GoKungfuReshapeStrategy
-func GoKungfuReshapeStrategy(pStrategyChanged *C.char) int {
-	StrategyChanged, err := kungfu.ReshapeStrategy()
+func GoKungfuReshapeStrategy(reshapeOn int, pStrategyChanged *C.char) int {
+	StrategyChanged, err := kungfu.ReshapeStrategy(reshapeOn)
 	if err != nil {
 		utils.ExitErr(err)
 	}

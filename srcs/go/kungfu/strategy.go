@@ -109,7 +109,7 @@ func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]int) []s
 			primaries = append(primaries, i)
 		}
 		if config[i] == 1 {
-			stragglers = append(activeBackups, i)
+			activeBackups = append(activeBackups, i)
 		}
 		if config[i] == 2 {
 			stragglers = append(stragglers, i)

@@ -40,6 +40,8 @@ type Kungfu struct {
 	updated          bool
 	currentIteration int
 	delayConfig      map[int]Delay
+	DelayOn          bool
+	activeBackup     bool
 }
 
 func New() (*Kungfu, error) {
@@ -55,6 +57,14 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 	server := rch.NewServer(router)
 	// initialize config at the beginning of a new session
 	delayConfig := parseDelayConfigFile()
+
+	if config.DelayOn {
+		log.Debugf("Delay reaches here and set to True")
+	}
+	if !config.DelayOn {
+		log.Debugf("Delay reaches here and set to False")
+
+	}
 	return &Kungfu{
 		parent:           config.Parent,
 		parents:          config.Parents,
@@ -69,7 +79,9 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 		server:           server,
 		currentIteration: 0,
 		delayConfig:      delayConfig,
+		DelayOn:          config.DelayOn,
 	}, nil
+
 }
 
 func (kf *Kungfu) Start() error {
@@ -137,7 +149,7 @@ func (kf *Kungfu) UpdateStrategy(newStrategy []strategy) bool {
 
 func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy) bool {
 	// TODO : add check to bypass method if unnecessary
-	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, kf.delayConfig, kf.currentIteration)
+	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
 	sess.strategies = newStrategy
 	if !exist {
 		return false
@@ -158,7 +170,7 @@ func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
 	log.Debugf("Kungfu::updateTo(%s), %d peers", pl, len(pl))
 	kf.router.ResetConnections(pl)
 
-	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, kf.delayConfig, kf.currentIteration)
+	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
 	if !exist {
 		return false
 	}
@@ -259,10 +271,7 @@ func (kf *Kungfu) nextStrategy() []strategy {
 	delay, ok := kf.parseIterationDelay()
 	var strategy []strategy
 
-	// enable/disable active backup
-	activeBackup := false
-
-	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, activeBackup)
+	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.activeBackup)
 	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
 
 	return strategy
@@ -270,16 +279,19 @@ func (kf *Kungfu) nextStrategy() []strategy {
 }
 
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
-func (kf *Kungfu) ReshapeStrategy() (bool, error) {
-	newStrategy := kf.nextStrategy()
+func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
+
+	var newStrategy []strategy
+
+	if reshapeOn == 0 {
+		newStrategy = kf.CurrentSession().strategies
+		kf.nextStrategy()
+	} else {
+		newStrategy = kf.nextStrategy()
+	}
 
 	// change this variable to set measure baseline delay for now.
-	// TODO: Move this out to ReshapeStrategy as an argument.
-
-	baselineDelayOn := true 
-	if baselineDelayOn {
-		newStrategy = kf.CurrentSession().strategies
-	}
+	// TODO: Move this out to ReshapeStrategy as an argument
 
 	changed := kf.UpdateStrategy(newStrategy)
 

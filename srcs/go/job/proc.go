@@ -29,13 +29,15 @@ func merge(e, f Envs) Envs {
 
 // Proc represents a process
 type Proc struct {
-	Name    string
-	Prog    string
-	Args    []string
-	Envs    Envs
-	IPv4    uint32
-	PubAddr string
-	LogDir  string
+	Name         string
+	Prog         string
+	Args         []string
+	Envs         Envs
+	IPv4         uint32
+	PubAddr      string
+	LogDir       string
+	DelayOn      string
+	ActiveBackup string
 }
 
 func (p Proc) Cmd() *exec.Cmd {

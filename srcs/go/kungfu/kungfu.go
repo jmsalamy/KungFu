@@ -283,26 +283,22 @@ func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
 	var newStrategy []strategy
 
-	// if reshapeOn == 0 {
-	// 	newStrategy = kf.CurrentSession().strategies
-	// 	kf.nextStrategy()
-	// } else {
-	// 	newStrategy = kf.nextStrategy()
-	// }
-	strategyChanged := kf.proposeStrategy(newStrategy)
-	newStrategy = kf.nextStrategy()
-	if strategyChanged {
-		kf.UpdateStrategy(newStrategy)
-
+	if reshapeOn == 0 {
+		newStrategy = kf.CurrentSession().strategies
+		kf.nextStrategy()
+	} else {
+		newStrategy = kf.nextStrategy()
 	}
 
 	// change this variable to set measure baseline delay for now.
 	// TODO: Move this out to ReshapeStrategy as an argument
 
+	changed := kf.UpdateStrategy(newStrategy)
+
 	// update global step here (centralize this logic to only one method, which is ReshapeStrategy for now)
 	kf.currentIteration++
 
-	return strategyChanged, nil
+	return changed, nil
 }
 
 func (kf *Kungfu) parseIterationDelay() (Delay, bool) {

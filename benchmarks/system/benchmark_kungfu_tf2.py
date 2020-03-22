@@ -56,14 +56,14 @@ parser.add_argument('--kf-optimizer',
                     default='sync-sgd',
                     help='kungfu optimizer')
 parser.add_argument('--reshape-on', 
-                    type=bool, 
+                    action='store_true',
                     default=False,
-                    help='turn on/off reshape strategy method')
+                    help='turn on reshape strategy method')
 
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda
-reshape = 1 if args.reshape_on == True else 0
+reshape = 1 if args.reshape_on else 0
 
 # Set up standard model.
 model = getattr(applications, args.model)(weights=None)

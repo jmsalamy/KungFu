@@ -41,7 +41,7 @@ type Kungfu struct {
 	currentIteration int
 	delayConfig      map[int]Delay
 	DelayOn          bool
-	activeBackup     bool
+	ActiveBackup     bool
 }
 
 func New() (*Kungfu, error) {
@@ -271,8 +271,7 @@ func (kf *Kungfu) nextStrategy() []strategy {
 	delay, ok := kf.parseIterationDelay()
 	var strategy []strategy
 
-	
-	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.activeBackup)
+	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.ActiveBackup)
 	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
 
 	return strategy
@@ -282,6 +281,8 @@ func (kf *Kungfu) nextStrategy() []strategy {
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
+	log.Debugf(fmt.Sprintln("kf.DelayOn is ", kf.DelayOn))
+	log.Debugf(fmt.Sprintln("kf.activeBackup is ", kf.ActiveBackup))
 	var newStrategy []strategy
 
 	if reshapeOn == 0 {

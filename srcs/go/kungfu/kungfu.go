@@ -275,20 +275,13 @@ func (kf *Kungfu) nextStrategy() []strategy {
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
-	log.Debugf(fmt.Sprintln("kf.DelayOn is ", kf.DelayOn))
-	log.Debugf(fmt.Sprintln("kf.ActiveBackup is ", kf.ActiveBackup))
 	var newStrategy []strategy
-
 	if reshapeOn == 0 {
 		newStrategy = kf.CurrentSession().strategies
 		kf.nextStrategy()
 	} else {
 		newStrategy = kf.nextStrategy()
 	}
-
-	// change this variable to set measure baseline delay for now.
-	// TODO: Move this out to ReshapeStrategy as an argument
-
 	changed := kf.UpdateStrategy(newStrategy)
 
 	// update global step here (centralize this logic to only one method, which is ReshapeStrategy for now)

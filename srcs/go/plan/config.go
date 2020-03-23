@@ -19,8 +19,9 @@ type Config struct {
 	HostList  HostList
 	PortRange PortRange
 
-	Single  bool
-	DelayOn bool
+	Single       bool
+	DelayOn      bool
+	ActiveBackup bool
 }
 
 func ParseConfigFromEnv() (*Config, error) {
@@ -52,6 +53,7 @@ func ParseConfigFromEnv() (*Config, error) {
 		return nil, err
 	}
 	DelayOn := getDelayFromEnv()
+	ActiveBackup := getBackupTypeFromEnv()
 
 	return &Config{
 		Self:           *self,
@@ -63,6 +65,7 @@ func ParseConfigFromEnv() (*Config, error) {
 		Strategy:       *strategy,
 		InitCheckpoint: os.Getenv(kb.CheckpointEnvKey),
 		DelayOn:        DelayOn,
+		ActiveBackup:   ActiveBackup,
 	}, nil
 }
 

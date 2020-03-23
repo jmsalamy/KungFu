@@ -58,13 +58,6 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 	// initialize config at the beginning of a new session
 	delayConfig := parseDelayConfigFile()
 
-	if config.DelayOn {
-		log.Debugf("Delay reaches here and set to True")
-	}
-	if !config.DelayOn {
-		log.Debugf("Delay reaches here and set to False")
-
-	}
 	return &Kungfu{
 		parent:           config.Parent,
 		parents:          config.Parents,
@@ -80,6 +73,7 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 		currentIteration: 0,
 		delayConfig:      delayConfig,
 		DelayOn:          config.DelayOn,
+		ActiveBackup:     config.ActiveBackup,
 	}, nil
 
 }
@@ -282,7 +276,7 @@ func (kf *Kungfu) nextStrategy() []strategy {
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
 	log.Debugf(fmt.Sprintln("kf.DelayOn is ", kf.DelayOn))
-	log.Debugf(fmt.Sprintln("kf.activeBackup is ", kf.ActiveBackup))
+	log.Debugf(fmt.Sprintln("kf.ActiveBackup is ", kf.ActiveBackup))
 	var newStrategy []strategy
 
 	if reshapeOn == 0 {

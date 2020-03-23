@@ -54,16 +54,16 @@ func (j Job) NewProc(peer plan.PeerID, localRank int, checkpoint string, pl plan
 		}
 	}
 
-	delayOnString := boolToString(j.DelayOn)
 	return Proc{
-		Name:    fmt.Sprintf("%s.%d", plan.FormatIPv4(peer.IPv4), peer.Port),
-		Prog:    j.Prog,
-		Args:    j.Args,
-		Envs:    allEnvs,
-		IPv4:    peer.IPv4,
-		PubAddr: pubAddr,
-		LogDir:  j.LogDir,
-		DelayOn: delayOnString,
+		Name:         fmt.Sprintf("%s.%d", plan.FormatIPv4(peer.IPv4), peer.Port),
+		Prog:         j.Prog,
+		Args:         j.Args,
+		Envs:         allEnvs,
+		IPv4:         peer.IPv4,
+		PubAddr:      pubAddr,
+		LogDir:       j.LogDir,
+		DelayOn:      boolToString(j.DelayOn),
+		ActiveBackup: boolToString(j.ActiveBackup),
 	}
 }
 

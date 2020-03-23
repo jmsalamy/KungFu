@@ -271,6 +271,7 @@ func (kf *Kungfu) nextStrategy() []strategy {
 	delay, ok := kf.parseIterationDelay()
 	var strategy []strategy
 
+	
 	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.activeBackup)
 	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
 

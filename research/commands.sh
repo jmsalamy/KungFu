@@ -179,17 +179,17 @@ kungfu-run -np 16 \
 -strategy RING \
 -delay=true \
 -activeBackup=false \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=50 --reshape-on=True
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=50 --reshape-on
 
 
 kungfu-run -np 8 \
 -H 10.128.0.14:4,10.128.0.15:4 \
 -nic eth0 \
--logdir logs/debug/ \
+-logdir logs/debug/baseline \
 -strategy RING \
 -delay=false \
 -activeBackup=false \
-python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
+python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10 --reshape-on
 
 
 cd src/KungFu

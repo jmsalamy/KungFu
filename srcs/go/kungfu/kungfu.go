@@ -275,9 +275,9 @@ func (kf *Kungfu) nextStrategy() []strategy {
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
-	log.Debugf(fmt.Sprintln("kf.DelayOn is ", kf.DelayOn))
-	log.Debugf(fmt.Sprintln("kf.ActiveBackup is ", kf.ActiveBackup))
-	log.Debugf(fmt.Sprintln("reshapeOn is ", reshapeOn))
+	// log.Debugf(fmt.Sprintln("kf.DelayOn is ", kf.DelayOn))
+	// log.Debugf(fmt.Sprintln("kf.ActiveBackup is ", kf.ActiveBackup))
+	// log.Debugf(fmt.Sprintln("reshapeOn is ", reshapeOn))
 
 	var newStrategy []strategy
 	if reshapeOn == 0 {

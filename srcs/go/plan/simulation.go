@@ -13,3 +13,11 @@ func getDelayFromEnv() bool {
 	}
 	return false
 }
+
+func getBackupTypeFromEnv() bool {
+	val, _ := os.LookupEnv(kb.ActiveBackupEnvKey)
+	if val == "true" {
+		return true
+	}
+	return false
+}

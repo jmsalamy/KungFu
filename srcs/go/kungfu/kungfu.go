@@ -41,7 +41,7 @@ type Kungfu struct {
 	currentIteration int
 	delayConfig      map[int]Delay
 	DelayOn          bool
-	activeBackup     bool
+	ActiveBackup     bool
 }
 
 func New() (*Kungfu, error) {
@@ -58,13 +58,6 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 	// initialize config at the beginning of a new session
 	delayConfig := parseDelayConfigFile()
 
-	if config.DelayOn {
-		log.Debugf("Delay reaches here and set to True")
-	}
-	if !config.DelayOn {
-		log.Debugf("Delay reaches here and set to False")
-
-	}
 	return &Kungfu{
 		parent:           config.Parent,
 		parents:          config.Parents,
@@ -80,6 +73,7 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 		currentIteration: 0,
 		delayConfig:      delayConfig,
 		DelayOn:          config.DelayOn,
+		ActiveBackup:     config.ActiveBackup,
 	}, nil
 
 }
@@ -271,7 +265,7 @@ func (kf *Kungfu) nextStrategy() []strategy {
 	delay, ok := kf.parseIterationDelay()
 	var strategy []strategy
 
-	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.activeBackup)
+	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.ActiveBackup)
 	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
 
 	return strategy
@@ -281,18 +275,17 @@ func (kf *Kungfu) nextStrategy() []strategy {
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
-	var newStrategy []strategy
+	// log.Debugf(fmt.Sprintln("kf.DelayOn is ", kf.DelayOn))
+	// log.Debugf(fmt.Sprintln("kf.ActiveBackup is ", kf.ActiveBackup))
+	// log.Debugf(fmt.Sprintln("reshapeOn is ", reshapeOn))
 
+	var newStrategy []strategy
 	if reshapeOn == 0 {
 		newStrategy = kf.CurrentSession().strategies
 		kf.nextStrategy()
 	} else {
 		newStrategy = kf.nextStrategy()
 	}
-
-	// change this variable to set measure baseline delay for now.
-	// TODO: Move this out to ReshapeStrategy as an argument
-
 	changed := kf.UpdateStrategy(newStrategy)
 
 	// update global step here (centralize this logic to only one method, which is ReshapeStrategy for now)

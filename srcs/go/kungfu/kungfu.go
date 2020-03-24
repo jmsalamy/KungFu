@@ -265,9 +265,14 @@ func (kf *Kungfu) nextStrategy() []strategy {
 	delay, ok := kf.parseIterationDelay()
 	var strategy []strategy
 
-	config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.ActiveBackup)
-	strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
+	if ok {
+		config := GenerateConfigFromDelay(len(kf.currentPeers), delay, ok, kf.ActiveBackup)
+		strategy = createRingStrategiesFromConfig(kf.currentPeers, config)
 
+	} else {
+		strategy = createRingStrategies(kf.currentPeers)
+
+	}
 	return strategy
 
 }

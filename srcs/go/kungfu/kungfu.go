@@ -328,13 +328,14 @@ func parseDelayConfigFile() map[float32]Delay {
 
 func parseDelayFromRow(args []string) Delay {
 	var delayArgs []float32
-	for _, i := range args {
-		j, err := strconv.Atof(i)
+	for _, f := range args {
+		j, err := strconv.ParseFloat(f,32)
 		if err != nil {
-			return Delay{1, 0, 0}
+			return Delay{1, 0, 0.0}
 		}
 		delayArgs = append(delayArgs, j)
 	}
-	delay := Delay{delayArgs[0], delayArgs[1], delayArgs[2]}
+	//output should be iter int, machine int, delay float32
+	delay := Delay{int(delayArgs[0]), int(delayArgs[1]), delayArgs[2]}
 	return delay
 }

@@ -300,7 +300,7 @@ func (kf *Kungfu) parseIterationDelay() (Delay, bool) {
 	return delay, ok
 }
 
-func parseDelayConfigFile() map[int]Delay {
+func parseDelayConfigFile() map[float32]Delay {
 	// pwd, _ := os.Getwd()
 	data, err := ioutil.ReadFile("/home/ghobadi_mit_edu/src/KungFu/generated_configs/n8r10pct10ktotal.config")
 	if err != nil {
@@ -313,7 +313,7 @@ func parseDelayConfigFile() map[int]Delay {
 
 	// convert byte array to []Delay
 	// var delayArr []Delay
-	delayMap := make(map[int]Delay)
+	delayMap := make(map[float32]Delay)
 
 	for _, row := range configNewLineSeparated {
 		args := strings.Split(row, ",")
@@ -327,9 +327,9 @@ func parseDelayConfigFile() map[int]Delay {
 }
 
 func parseDelayFromRow(args []string) Delay {
-	var delayArgs []int
+	var delayArgs []float32
 	for _, i := range args {
-		j, err := strconv.Atoi(i)
+		j, err := strconv.Atof(i)
 		if err != nil {
 			return Delay{1, 0, 0}
 		}

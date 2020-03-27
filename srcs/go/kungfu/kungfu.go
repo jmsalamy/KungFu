@@ -336,6 +336,8 @@ func parseDelayFromRow(args []string) Delay {
 		delayArgs = append(delayArgs, float32(j))
 	}
 	//output should be iter int, machine int, delay float32
-	delay := Delay{int(delayArgs[0]), int(delayArgs[1]), delayArgs[2]}
+	//if we actually want delay in ms to float, change Delay type
+	delay := Delay{int(delayArgs[0]), int(delayArgs[1]), int(delayArgs[2])}
+	//fmt.Println(delay)
 	return delay
 }

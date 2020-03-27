@@ -331,7 +331,7 @@ func parseDelayFromRow(args []string) Delay {
 	for _, f := range args { 
 		j, err := strconv.ParseFloat(f,32)
 		if err != nil {
-			return Delay{1, 0, 0.0}
+			return Delay{1, 0, 0}
 		}
 		delayArgs = append(delayArgs, float32(j))
 	}

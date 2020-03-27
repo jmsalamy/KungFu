@@ -280,9 +280,9 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
 					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
-					log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
-					fmt.Println(delay.TimeDelay)
-					fmt.Println(sess.rank)
+					//log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
+					//fmt.Println(delay.TimeDelay)
+					//fmt.Println(sess.rank)
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}

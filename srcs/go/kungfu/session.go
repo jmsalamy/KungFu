@@ -280,9 +280,12 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
 					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
+<<<<<<< HEAD
 					log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
-					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
+=======
 					fmt.Println(delay.TimeDelay)
+>>>>>>> jmsalamy/master
+					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}
 			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {

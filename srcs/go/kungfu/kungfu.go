@@ -302,7 +302,10 @@ func (kf *Kungfu) parseIterationDelay() (Delay, bool) {
 
 func parseDelayConfigFile() map[int]Delay {
 	// pwd, _ := os.Getwd()
+<<<<<<< HEAD
 	data, err := ioutil.ReadFile("/home/gcp_ghobadi_google_mit_edu/src/KungFu/generated_configs/test_200ms_50percent_deterministic.config")
+=======
+>>>>>>> jmsalamy/master
 	if err != nil {
 		log.Errorf("File reading error", err)
 		return nil
@@ -327,15 +330,27 @@ func parseDelayConfigFile() map[int]Delay {
 }
 
 func parseDelayFromRow(args []string) Delay {
+<<<<<<< HEAD
 	var delayArgs []int
 	for _, f := range args {
+=======
+	var delayArgs []float32
+	for _, f := range args { 
+>>>>>>> jmsalamy/master
 		j, err := strconv.ParseFloat(f,32)
 		if err != nil {
 			log.Errorf("File Line Read Error")
 			return Delay{1, 0, 0}
 		}
+<<<<<<< HEAD
 		delayArgs = append(delayArgs, int(j))
+=======
+		delayArgs = append(delayArgs, float32(j))
+>>>>>>> jmsalamy/master
 	}
-	delay := Delay{delayArgs[0], delayArgs[1], delayArgs[2]}
+	//output should be iter int, machine int, delay float32
+	//if we actually want delay in ms to float, change Delay type
+	delay := Delay{int(delayArgs[0]), int(delayArgs[1]), int(delayArgs[2])}
+	//fmt.Println(delay)
 	return delay
 }

@@ -328,12 +328,13 @@ func parseDelayConfigFile() map[int]Delay {
 
 func parseDelayFromRow(args []string) Delay {
 	var delayArgs []int
-	for _, i := range args {
-		j, err := strconv.Atoi(i)
+	for _, f := range args {
+		j, err := strconv.ParseFloat(f,32)
 		if err != nil {
+			log.Errorf("File Line Read Error")
 			return Delay{1, 0, 0}
 		}
-		delayArgs = append(delayArgs, j)
+		delayArgs = append(delayArgs, int(j))
 	}
 	delay := Delay{delayArgs[0], delayArgs[1], delayArgs[2]}
 	return delay

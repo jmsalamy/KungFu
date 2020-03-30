@@ -57,7 +57,9 @@ class _SynchronousSGD(_KungFuAlgorithm):
         gradients, variables = list(zip(*grads_and_vars))
 
         if self._reshape_strategy:
-            reshape_strategy(debug=False)
+            reshape_strategy(1)
+        else:
+            reshape_strategy(0)
             
 
         if self._nccl:

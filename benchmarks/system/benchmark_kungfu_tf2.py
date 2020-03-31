@@ -73,7 +73,7 @@ opt = tf.compat.v1.train.GradientDescentOptimizer(0.01)
 
 # KungFu: wrap tf.compat.v1.train.Optimizer.
 if args.kf_optimizer == 'sync-sgd':
-    opt = SynchronousSGDOptimizer(opt,reshape=True, use_locking=True)
+    opt = SynchronousSGDOptimizer(opt,reshape=args.reshape_on, use_locking=True)
 elif args.kf_optimizer == 'async-sgd':
     opt = PairAveragingOptimizer(opt)
 elif args.kf_optimizer == 'sma':

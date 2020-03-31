@@ -6,20 +6,13 @@ from kungfu.tensorflow.optimizers import (PairAveragingOptimizer,
                                           SynchronousAveragingOptimizer,
                                           SynchronousSGDOptimizer)
 from kungfu.tensorflow.initializer import BroadcastGlobalVariablesCallback
-from kungfu.tensorflow.ops import (reshape_strategy)
 
 parser = argparse.ArgumentParser(description='KungFu mnist example.')
 parser.add_argument('--kf-optimizer',
                     type=str,
                     default='sync-sgd',
                     help='available options: sync-sgd, async-sgd, sma')
-parser.add_argument('--reshape-on', 
-                    action='store_true',
-                    default=False,
-                    help='turn on reshape strategy method')
 args = parser.parse_args()
-
-reshape = 1 if args.reshape_on else 0
 
 (x_train, y_train), _ = \
     tf.keras.datasets.mnist.load_data(path='mnist-%d.npz' % current_rank())
@@ -39,9 +32,6 @@ mnist_model = tf.keras.Sequential([
     tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(10, activation='softmax')
 ])
-
-# reshape strategy here 
-reshape_strategy(reshape)
 
 # KungFu: adjust learning rate based on number of GPUs.
 opt = tf.keras.optimizers.SGD(0.001 * current_cluster_size())

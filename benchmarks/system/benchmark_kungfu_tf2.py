@@ -73,11 +73,11 @@ opt = tf.compat.v1.train.GradientDescentOptimizer(0.01)
 
 # KungFu: wrap tf.compat.v1.train.Optimizer.
 if args.kf_optimizer == 'sync-sgd':
-    opt = SynchronousSGDOptimizer(opt)
+    opt = SynchronousSGDOptimizer(opt,reshape=args.reshape_on, use_locking=True)
 elif args.kf_optimizer == 'async-sgd':
     opt = PairAveragingOptimizer(opt)
 elif args.kf_optimizer == 'sma':
-    opt = SynchronousAveragingOptimizer(opt)
+    opt = SynchronousAveragingOptimizer(opt) #match this to resnet KF
 else:
     raise RuntimeError('Unknown KungFu optimizer')
 
@@ -91,7 +91,7 @@ target = tf.random.uniform([args.batch_size, 1],
 @tf.function
 def benchmark_step(first_batch):
     # reshape strategy here 
-    reshape_strategy(reshape)
+    # reshape_strategy(reshape)
     # gradient calculation and updates
     with tf.GradientTape() as tape:
         probs = model(data, training=True)

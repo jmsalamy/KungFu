@@ -275,14 +275,10 @@ func (kf *Kungfu) nextStrategy() []strategy {
 // ReshapeStrategy Creates a new KungFu Session with the given strategy
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
-	// log.Debugf(fmt.Sprintln("kf.DelayOn is ", kf.DelayOn))
-	// log.Debugf(fmt.Sprintln("kf.ActiveBackup is ", kf.ActiveBackup))
-	// log.Debugf(fmt.Sprintln("reshapeOn is ", reshapeOn))
-
 	var newStrategy []strategy
 	if reshapeOn == 0 {
 		newStrategy = kf.CurrentSession().strategies
-		kf.nextStrategy()
+		// kf.nextStrategy()
 	} else {
 		newStrategy = kf.nextStrategy()
 	}
@@ -302,7 +298,7 @@ func (kf *Kungfu) parseIterationDelay() (Delay, bool) {
 
 func parseDelayConfigFile() map[int]Delay {
 	// pwd, _ := os.Getwd()
-	data, err := ioutil.ReadFile("/home/gcp_ghobadi_google_mit_edu/src/KungFu/generated_configs/test_200ms_50percent_deterministic.config")
+	data, err := ioutil.ReadFile("/Users/ayushs/dev/src/KungFu/generated_configs/test_200ms_50percent_deterministic.config")
 	if err != nil {
 		log.Errorf("File reading error", err)
 		return nil

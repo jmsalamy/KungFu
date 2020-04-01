@@ -133,10 +133,8 @@ if __name__ == "__main__":
 
 
                 # reshape strategy before apply_gradients (and therefore AllReduce is called in KungFu)
-                keep = reshape_strategy()
-                if not keep:
-                    print("RESHAPE STRATEGY DIDN'T WORK!!!!!!!!!!!!!!")
-
+                reshape_strategy(1)
+                
                 t0 = time.time()
                 probs, loss_value = training_step(
                     mnist_model, opt, images, labels, batch == 0)

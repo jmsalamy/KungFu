@@ -192,6 +192,15 @@ kungfu-run -np 8 \
 python benchmarks/system/benchmark_kungfu_tf2.py --batch-size=128 --num-warmup-batches=10
 
 
+
+kungfu-run -np 8 \
+-logdir logs/debug/timeline \
+-strategy RING \
+-delay=true \
+-activeBackup=false \
+python examples/tf2_mnist_gradient_tape.py --name timeline-test
+
+
 cd src/KungFu
 git pull 
 yes | pip uninstall KungFu

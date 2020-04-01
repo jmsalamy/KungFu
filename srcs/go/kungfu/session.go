@@ -255,16 +255,10 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 	}
 
 	// delay the appropriate worker by delay.TimeDelay ms
-	// TODO: parse Delay from file and update it every iteration here
-	delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-
-	isDebug := false
-	if sess.rank == 0 && isDebug {
-		log.Debugf("info here")
-		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-		log.Debugf(fmt.Sprintf("ok :", ok))
-		log.Debugf(fmt.Sprintf("delay : ", delay))
-	}
+	// isDebug := false
+	// if sess.rank == 0 && isDebug {
+	// 	log.Debugf("info here")
+	// 	log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
 
 	for _, g := range graphs {
 		// reduce graph
@@ -275,12 +269,8 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
 			if sess.delayOn && isAllReduce {
+				delay, ok := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 				if sess.rank == delay.NodeID && ok {
-					// log.Debugf("delaying worker for this iteration --------------------")
-					// log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-					// log.Debugf(fmt.Sprintf("iteration from config :", delay.IterationID))
-					// log.Debugf(fmt.Sprintf("worker :", (delay.NodeID)))
-					// log.Debugf(fmt.Sprintf("delay time :", delay.TimeDelay))
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}
 			}

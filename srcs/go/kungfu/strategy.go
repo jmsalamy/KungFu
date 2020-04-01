@@ -103,6 +103,8 @@ func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]int) []s
 	var primaries []int
 	var stragglers []int
 	var activeBackups []int
+	// primaries := []int{0, 1, 2, 3, 4, 5}
+	// stragglers := [2]int{6, 7}
 
 	for i := 0; i < k; i++ {
 		if config[i] == 0 {

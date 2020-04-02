@@ -103,8 +103,6 @@ func createRingStrategiesFromConfig(peers plan.PeerList, config map[int]int) []s
 	var primaries []int
 	var stragglers []int
 	var activeBackups []int
-	// primaries := []int{0, 1, 2, 3, 4, 5}
-	// stragglers := [2]int{6, 7}
 
 	for i := 0; i < k; i++ {
 		if config[i] == 0 {
@@ -157,15 +155,17 @@ func autoSelect(peers plan.PeerList) kb.Strategy {
 
 type Delay struct {
 	IterationID int
-	NodeID      int
-	TimeDelay   int
+	// NodeID is a map[NodeID][IterationID]
+	NodeID    map[int]int
+	TimeDelay int
 }
 
 func GenerateConfigFromDelay(k int, delay Delay, isStraggling, enableActiveBackup bool) map[int]int {
 	config := make(map[int]int)
 	for i := 0; i < k; i++ {
 		// backup/straggler node
-		if delay.NodeID == i && isStraggling {
+		_, ok := delay.NodeID[i]
+		if ok && isStraggling {
 			config[i] = 2
 
 		} else {

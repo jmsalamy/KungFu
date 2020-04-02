@@ -18,7 +18,13 @@ parser.add_argument('--name',
                     type=str,
                     required=True,
                     help='name this experiement run for Tensorboard logging')
+parser.add_argument('--reshape-on', 
+                    action='store_true',
+                    default=False,
+                    help='turn on reshape strategy method')
+
 args = parser.parse_args()
+reshape = 1 if args.reshape_on else 0
 
 DATASET_SIZE = 300
 TRAIN_VAL_SPLIT = 0.8
@@ -133,7 +139,7 @@ if __name__ == "__main__":
 
 
                 # reshape strategy before apply_gradients (and therefore AllReduce is called in KungFu)
-                reshape_strategy(1)
+                reshape_strategy(reshape)
                 
                 t0 = time.time()
                 probs, loss_value = training_step(

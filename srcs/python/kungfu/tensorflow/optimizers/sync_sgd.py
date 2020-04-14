@@ -47,8 +47,8 @@ def SynchronousSGDOptimizer(optimizer,
 
 
 class _SynchronousSGD(_KungFuAlgorithm):
-    def __init__(self, reshape_strategy, nccl=False, nccl_fusion=True, ):
-        self._reshape_strategy = reshape_strategy
+    def __init__(self, reshape, nccl=False, nccl_fusion=True, ):
+        self._reshape_strategy = reshape
         self._nccl = nccl
         self._nccl_fusion = nccl_fusion
         self._num_workers = current_cluster_size()
@@ -57,7 +57,9 @@ class _SynchronousSGD(_KungFuAlgorithm):
         gradients, variables = list(zip(*grads_and_vars))
 
         if self._reshape_strategy:
-            reshape_strategy(debug=False)
+            reshape_strategy(1)
+        else:
+            reshape_strategy(0)
             
 
         if self._nccl:

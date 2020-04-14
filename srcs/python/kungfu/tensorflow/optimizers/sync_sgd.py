@@ -13,7 +13,7 @@ def SynchronousSGDOptimizer(optimizer,
                             name=None,
                             use_locking=False,
                             with_keras=False,
-                            reshape_strategy=False):
+                            reshape=False):
     """SynchronousSGDOptimizer implements the [S-SGD]_ algorithm.
 
     This optimizer is equivalent to the DistributedOptimizer in Horovod.
@@ -38,7 +38,7 @@ def SynchronousSGDOptimizer(optimizer,
     Returns:
         optimizer {tf.train.Optimizer, tf.keras.optimizers.Optimizer} -- KungFu distributed optimizer
     """
-    sync_sgd_algo = _SynchronousSGD(reshape_strategy, nccl, nccl_fusion)
+    sync_sgd_algo = _SynchronousSGD(reshape, nccl, nccl_fusion)
     if not with_keras:
         return _create_kungfu_optimizer(optimizer, sync_sgd_algo, name,
                                         use_locking)

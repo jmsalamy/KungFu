@@ -299,7 +299,7 @@ func (kf *Kungfu) parseIterationDelay() (Delay, bool) {
 
 func parseDelayConfigFile() map[int]Delay {
 	// pwd, _ := os.Getwd()
-	data, err := ioutil.ReadFile("/Users/ayushs/dev/src/KungFu/generated_configs/n16f1in3del200.config")
+	data, err := ioutil.ReadFile("/home/gcp_ghobadi_google_mit_edu/src/KungFu/generated_configs/n16f1in3del200.config")
 	if err != nil {
 		log.Errorf("File reading error", err)
 		return nil

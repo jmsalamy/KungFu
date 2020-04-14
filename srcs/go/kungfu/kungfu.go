@@ -277,13 +277,13 @@ func (kf *Kungfu) nextStrategy() []strategy {
 func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
 	var newStrategy []strategy
+	var changed bool
 	if reshapeOn == 0 {
-		newStrategy = kf.CurrentSession().strategies
-		// kf.nextStrategy()
+		changed = true
 	} else {
 		newStrategy = kf.nextStrategy()
+		changed = kf.UpdateStrategy(newStrategy)
 	}
-	changed := kf.UpdateStrategy(newStrategy)
 
 	// update global step here (centralize this logic to only one method, which is ReshapeStrategy for now)
 	kf.currentIteration++

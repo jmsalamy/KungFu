@@ -63,7 +63,7 @@ parser.add_argument('--reshape-on',
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda
-reshape = 1 if args.reshape_on else 0
+#reshape = 1 if args.reshape_on else 0
 
 # Set up standard model.
 model = getattr(applications, args.model)(weights=None)

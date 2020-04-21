@@ -236,17 +236,6 @@ func (kf *Kungfu) propose(ckpt string, peers plan.PeerList) (bool, bool) {
 	return true, keep
 }
 
-func (kf *Kungfu) proposeStrategy(newStrategy []strategy) bool {
-	// TODO : if new strategy same as old, do nothing
-	func() {
-		kf.Lock()
-		defer kf.Unlock()
-		// kf.strategy = newStrategy
-		// kf.updated = false
-	}()
-	return true
-}
-
 func (kf *Kungfu) ResizeCluster(ckpt string, newSize int) (bool, bool, error) {
 	log.Debugf("resize cluster to %d with checkpoint %q", newSize, ckpt)
 	peers, err := kf.hostList.GenPeerList(newSize, kf.portRange)
@@ -278,15 +267,23 @@ func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 
 	var newStrategy []strategy
 	var changed bool
-	if reshapeOn == 0 {
+
+	// increment iterationIdx
+	kf.currentIteration++
+
+	// baseline case (delay off reshape off)
+	if !kf.DelayOn && reshapeOn == 0 {
 		changed = true
+		// delay on reshape off
+	} else if kf.DelayOn && reshapeOn == 0 {
+		newStrategy = kf.CurrentSession().strategies
+		changed = kf.UpdateStrategy(newStrategy)
+
+		// delay on reshape on
 	} else {
 		newStrategy = kf.nextStrategy()
 		changed = kf.UpdateStrategy(newStrategy)
 	}
-
-	// update global step here (centralize this logic to only one method, which is ReshapeStrategy for now)
-	kf.currentIteration++
 
 	return changed, nil
 }

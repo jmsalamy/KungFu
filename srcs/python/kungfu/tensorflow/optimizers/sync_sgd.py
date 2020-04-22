@@ -58,9 +58,10 @@ class _SynchronousSGD(_KungFuAlgorithm):
 
         if self._reshape_strategy:
             reshape_strategy(1)
+            print("Reshape On")
         else:
             reshape_strategy(0)
-            
+            print("Reshape Off")
 
         if self._nccl:
             # FIXME: We have a limitation that KungFu schedules NCCL operations

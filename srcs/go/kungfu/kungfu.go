@@ -286,6 +286,7 @@ func (kf *Kungfu) ReshapeStrategy(reshapeOn int) (bool, error) {
 	}
 
 	// update global step here (centralize this logic to only one method, which is ReshapeStrategy for now)
+	//fmt.Println(kf.currentIteration)
 	kf.currentIteration++
 
 	return changed, nil

@@ -258,9 +258,9 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 	isDebug := false
 	if isDebug {
 		log.Debugf("info here")
-		log.Debugf(fmt.Sprintf("sess.iteration :", sess.iterationIdx))
-		log.Debugf(fmt.Sprintf("sess.delayOn :", sess.delayOn))
-		log.Debugf(fmt.Sprintf("isallreduce :", isAllReduce))
+		log.Debugf(fmt.Sprintf("sess.iteration : %v", sess.iterationIdx))
+		log.Debugf(fmt.Sprintf("sess.delayOn : %v", sess.delayOn))
+		log.Debugf(fmt.Sprintf("isallreduce : %v", isAllReduce))
 	}
 	// delay the appropriate worker by delay.TimeDelay ms
 	for _, g := range graphs {
@@ -275,9 +275,9 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 
 				delay, iterStraggler := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
 				_, nodeStraggler := delay.NodeID[sess.rank]
-				//log.Debugf(fmt.Sprintf("nodeStraggler :", nodeStraggler))
-				//log.Debugf(fmt.Sprintf("iterStraggler :", iterStraggler))
-				//log.Debugf(fmt.Sprintf("delay.TimeDelay :", delay.TimeDelay))
+				//log.Debugf(fmt.Sprintf("nodeStraggler : %v", nodeStraggler))
+				//log.Debugf(fmt.Sprintf("iterStraggler : %v", iterStraggler))
+				//log.Debugf(fmt.Sprintf("delay.TimeDelay : %v", delay.TimeDelay))
 				if nodeStraggler && iterStraggler {
 					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
 				}

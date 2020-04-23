@@ -338,9 +338,9 @@ func parseDelayFromRow(args []string, numBackups int) Delay {
 	NodeIDMap := make(map[int]int)
 
 	for i := 1; i < numBackups+1; i++ {
-		NodeIDMap[delayArgs[i]] = delayArgs[2]
+		NodeIDMap[delayArgs[i]] = delayArgs[len(delayArgs)-1]
 
 	}
-	delay := Delay{delayArgs[0], NodeIDMap, delayArgs[2]}
+	delay := Delay{delayArgs[0], NodeIDMap, delayArgs[len(delayArgs)-1]}
 	return delay
 }

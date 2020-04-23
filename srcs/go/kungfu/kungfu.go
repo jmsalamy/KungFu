@@ -298,7 +298,7 @@ func (kf *Kungfu) parseIterationDelay() (Delay, bool) {
 
 func parseDelayConfigFile() map[int]Delay {
 	// pwd, _ := os.Getwd()
-	data, err := ioutil.ReadFile("/home/gcp_ghobadi_google_mit_edu/src/KungFu/generated_configs/DETn16f1in2del200.config")
+	data, err := ioutil.ReadFile("/home/gcp_ghobadi_google_mit_edu/src/KungFu/generated_configs/strag2freq3t200.config")
 	if err != nil {
 		log.Errorf("File reading error", err)
 		return nil
@@ -311,7 +311,7 @@ func parseDelayConfigFile() map[int]Delay {
 	// var delayArr []Delay
 	delayMap := make(map[int]Delay)
 	// change this manually now between experiments if you change number of stragglers
-	numBackups := 1
+	numBackups := 2
 
 	for _, row := range configNewLineSeparated {
 		args := strings.Split(row, ",")

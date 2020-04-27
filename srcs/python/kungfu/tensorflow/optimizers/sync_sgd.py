@@ -57,11 +57,11 @@ class _SynchronousSGD(_KungFuAlgorithm):
         gradients, variables = list(zip(*grads_and_vars))
 
         if self._reshape_strategy:
-            reshape_strategy(1)
-            print("Reshape On")
+            #reshape_strategy(1)
+            print("Reshape On - Disabled")
         else:
-            reshape_strategy(0)
-            print("Reshape Off")
+            ##reshape_strategy(0)
+            print("Reshape Off - Disabled")
 
         if self._nccl:
             # FIXME: We have a limitation that KungFu schedules NCCL operations

@@ -33,9 +33,7 @@ type session struct {
 	delayOn      bool
 }
 
-//edit to remove config map (delay)
-//func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, config map[int]Delay, iter int, delayOn bool) (*session, bool) {
-func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, iter int, delayOn bool) (*session, bool) {
+func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router *rch.Router, config map[int]Delay, iter int, delayOn bool) (*session, bool) {
 	rank, ok := pl.Rank(self)
 	if !ok {
 		return nil, false
@@ -50,13 +48,13 @@ func newSession(strategy kb.Strategy, self plan.PeerID, pl plan.PeerList, router
 	// keep delayOn by default (and turn it on/off selectively thereafter in AllReduce and Barrier)
 
 	sess := &session{
-		strategies: partitionStrategies[strategy](pl),
-		self:       self,
-		peers:      pl,
-		rank:       rank,
-		localRank:  localRank,
-		router:     router,
-		//delayConfig:  config,
+		strategies:   partitionStrategies[strategy](pl),
+		self:         self,
+		peers:        pl,
+		rank:         rank,
+		localRank:    localRank,
+		router:       router,
+		delayConfig:  config,
 		iterationIdx: iter,
 		delayOn:      delayOn,
 	}

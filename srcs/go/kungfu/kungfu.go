@@ -57,8 +57,7 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 	router := rch.NewRouter(config.Self)
 	server := rch.NewServer(router)
 	// initialize config at the beginning of a new session
-	//Remove to debug baseline behaviour
-	//delayConfig := parseDelayConfigFile()
+	delayConfig := parseDelayConfigFile()
 
 	return &Kungfu{
 		parent:           config.Parent,
@@ -73,9 +72,9 @@ func NewFromConfig(config *plan.Config) (*Kungfu, error) {
 		router:           router,
 		server:           server,
 		currentIteration: 0,
-		//delayConfig:      delayConfig,
-		DelayOn:      config.DelayOn,
-		ActiveBackup: config.ActiveBackup,
+		delayConfig:      delayConfig,
+		DelayOn:          config.DelayOn,
+		ActiveBackup:     config.ActiveBackup,
 	}, nil
 
 }
@@ -145,8 +144,7 @@ func (kf *Kungfu) UpdateStrategy(newStrategy []strategy) bool {
 
 func (kf *Kungfu) UpdateStrategyTo(newStrategy []strategy) bool {
 	// TODO : add check to bypass method if unnecessary
-	//sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
-	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, kf.currentIteration, kf.DelayOn)
+	sess, exist := newSession(kf.strategy, kf.self, kf.currentPeers, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
 	sess.strategies = newStrategy
 	if !exist {
 		return false
@@ -167,9 +165,7 @@ func (kf *Kungfu) updateTo(pl plan.PeerList) bool {
 	log.Debugf("Kungfu::updateTo(%s), %d peers", pl, len(pl))
 	kf.router.ResetConnections(pl)
 
-	//sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
-	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, kf.currentIteration, kf.DelayOn)
-
+	sess, exist := newSession(kf.strategy, kf.self, pl, kf.router, kf.delayConfig, kf.currentIteration, kf.DelayOn)
 	if !exist {
 		return false
 	}

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	kb "github.com/lsds/KungFu/srcs/go/kungfubase"
 	"github.com/lsds/KungFu/srcs/go/log"
@@ -273,17 +272,17 @@ func (sess *session) runGraphs(w Workspace, isAllReduce bool, graphs ...*plan.Gr
 				return err
 			}
 			// add delay here right before the sess.rank sends its reduced data to next nodes
-			if sess.delayOn && isAllReduce {
+			// if sess.delayOn && isAllReduce {
 
-				delay, iterStraggler := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
-				_, nodeStraggler := delay.NodeID[sess.rank]
-				//log.Debugf(fmt.Sprintf("nodeStraggler : %v", nodeStraggler))
-				//log.Debugf(fmt.Sprintf("iterStraggler : %v", iterStraggler))
-				//log.Debugf(fmt.Sprintf("delay.TimeDelay : %v", delay.TimeDelay))
-				if nodeStraggler && iterStraggler {
-					time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
-				}
-			}
+			// 	delay, iterStraggler := sess.delayConfig[sess.iterationIdx%len(sess.delayConfig)]
+			// 	_, nodeStraggler := delay.NodeID[sess.rank]
+			// 	//log.Debugf(fmt.Sprintf("nodeStraggler : %v", nodeStraggler))
+			// 	//log.Debugf(fmt.Sprintf("iterStraggler : %v", iterStraggler))
+			// 	//log.Debugf(fmt.Sprintf("delay.TimeDelay : %v", delay.TimeDelay))
+			// 	if nodeStraggler && iterStraggler {
+			// 		time.Sleep(time.Duration(delay.TimeDelay) * time.Millisecond)
+			// 	}
+			// }
 			if err := par(g.Nexts(sess.rank), sendOnto); err != nil {
 				return err
 			}
